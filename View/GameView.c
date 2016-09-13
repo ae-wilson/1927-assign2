@@ -11,11 +11,14 @@
  
 struct gameView {
    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+   Map g;
+
    int turn;
    int score;
-   int players;
- 
-   int hello; //dummy  
+   int *health;
+
+   LocationID **trail;
+   
 };
      
 
@@ -24,7 +27,9 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
 {
     //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
     GameView gameView = malloc(sizeof(struct gameView));
-    gameView->hello = 42;
+    assert(gameView != NULL);
+
+    gameView->turn = 0; //dummy
 
     //printf("%d\n", idToType(1)); (dummy)
 
