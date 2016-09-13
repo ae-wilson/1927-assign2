@@ -2,15 +2,26 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 #include "Globals.h"
 #include "Game.h"
 #include "GameView.h"
 #include "Map.h"
 
+
+typedef struct encounter *Encounter;
+struct encounter {
+   LocationID v;
+   
+   int numMil;  //num of millions
+   int numTrap; //num of traps
+   int numVamp; //num of immature vampire (only one)
+   
+};
  
 struct gameView {
-   //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+
    Map g;
 
    int turn;
@@ -18,9 +29,11 @@ struct gameView {
    int *health;
 
    LocationID **trail;
-   
+   Encounter enc;         
+
 };
-     
+
+  
 
 // Creates a new GameView to summarise the current state of the game
 GameView newGameView(char *pastPlays, PlayerMessage messages[])
