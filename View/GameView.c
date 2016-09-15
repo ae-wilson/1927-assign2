@@ -9,42 +9,49 @@
 #include "GameView.h"
 #include "Map.h"
 
-
-typedef struct encounter *Encounter;
-struct encounter {
-   LocationID v;
-   
-   int numMil;  //num of millions
-   int numTrap; //num of traps
-   int numVamp; //num of immature vampire (only one)
-   
-};
- 
 struct gameView {
-
    Map g;
-
    int turn;
    int score;
    int *health;
-
-   LocationID **trail;
-   Encounter enc;         
-
+   LocationID **trail;     
+   PlayerMessage *ms; 
 };
 
-  
+static int rmSpaceLen(char *str); 
 
 // Creates a new GameView to summarise the current state of the game
 GameView newGameView(char *pastPlays, PlayerMessage messages[])
 {
-    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+    //Initialising the GameView ADT
     GameView gameView = malloc(sizeof(struct gameView));
     assert(gameView != NULL);
+    gameView->g = newMap();
+    assert(gameView->g != NULL);
+    gameView->health = malloc(NUM_PLAYERS * sizeof(int));
+    assert(gameView->health != NULL);
+    gameView->trail = malloc(NUM_PLAYERS * sizeof(int *));
+    assert(gameView->trail != NULL);
+ 
+    int i;
+    for(i = 0; i < NUM_PLAYERS; i++) {
+       gameView->trail[i] = malloc(TRAIL_SIZE * sizeof(int));
+       assert(gameView->trail[i] != NULL);
+    }
+     
 
-    gameView->turn = 0; //dummy
+    //Put the state of the game into the ADT
+    assert(rmSpaceLen(pastPlays) % 7 == 0);
+    gameView->turn = rmSpaceLen(pastPlays) / 7;
+    gameView->score = GAME_START_SCORE;    
 
-    //printf("%d\n", idToType(1)); (dummy)
+    for(i = 0; i < PLAYER_DRACULA; i++) {
+        gameView->health[i] = GAME_START_HUNTER_LIFE_POINTS;
+    }
+    gameView->health[i] = GAME_START_BLOOD_POINTS;    
+
+    gameView->ms = &messages[0];
+    assert(gameView->ms != NULL);
 
     return gameView;
 }
@@ -53,8 +60,13 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
 // Frees all memory previously allocated for the GameView toBeDeleted
 void disposeGameView(GameView toBeDeleted)
 {
-    //COMPLETE THIS IMPLEMENTATION
-    free( toBeDeleted );
+    assert(toBeDeleted != NULL);
+    assert(toBeDeleted->g != NULL);
+    assert(toBeDeleted->health != NULL);
+
+    disposeMap(toBeDeleted->g);
+    free(toBeDeleted->health);
+    free(toBeDeleted);
 }
 
 
@@ -115,3 +127,17 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
     //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
     return NULL;
 }
+
+
+static int rmSpaceLen(char *str) {
+   assert(str != NULL);
+   int i, length = 0;
+
+   for(i = 0; i < strlen(str); i++) {
+      if(str[i] != ' ') length++;
+   }
+
+   return length;
+} 
+
+
