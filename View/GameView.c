@@ -16,9 +16,10 @@ struct gameView {
    int *health;
    LocationID **trail;     
    PlayerMessage *ms; 
-};
+}; 
 
-static int rmSpaceLen(char *str); 
+static PlayerID whichPlayer(char c);
+static void frontInsert(LocationID *trail, char *location);
 
 // Creates a new GameView to summarise the current state of the game
 GameView newGameView(char *pastPlays, PlayerMessage messages[])
@@ -33,16 +34,19 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
     gameView->trail = malloc(NUM_PLAYERS * sizeof(int *));
     assert(gameView->trail != NULL);
  
-    int i;
+    int i, j = 0;
     for(i = 0; i < NUM_PLAYERS; i++) {
        gameView->trail[i] = malloc(TRAIL_SIZE * sizeof(int));
        assert(gameView->trail[i] != NULL);
+
+       for(j = 0; j < TRAIL_SIZE; j++) {
+          gameView->trail[i][j] = UNKNOWN_LOCATION;
+       }
     }
      
 
     //Adding the state of the game into the ADT
-    assert(rmSpaceLen(pastPlays) % 7 == 0);
-    gameView->turn = rmSpaceLen(pastPlays) / 7;
+    gameView->turn = 1;
     gameView->score = GAME_START_SCORE;    
 
     for(i = 0; i < PLAYER_DRACULA; i++) {
@@ -50,9 +54,23 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
     }
     gameView->health[i] = GAME_START_BLOOD_POINTS;    
 
-    gameView->ms = &messages[0];
-    assert(gameView->ms != NULL);
+    int interval = 8;
+    for(i = 0; i < strlen(pastPlays); i = i + interval) {
+        gameView->turn++;
+        PlayerID player = whichPlayer(pastPlays[i]);
+        assert(player != -1); //unknown player
 
+        char location[2];
+        location[0] = pastPlays[i+1];
+        location[1] = pastPlays[i+2];
+        
+        frontInsert(gameView->trail[player], abbrevToID(location));
+    }  
+
+
+    gameView->ms = &messages[0];
+    assert(gameView->ms != NULL);     
+       
     return gameView;
 }
      
@@ -129,15 +147,30 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
 }
 
 
-static int rmSpaceLen(char *str) {
-   assert(str != NULL);
-   int i, length = 0;
 
-   for(i = 0; i < strlen(str); i++) {
-      if(str[i] != ' ') length++;
-   }
+static PlayerID whichPlayer(char c) {
+    PlayerID id;   
 
-   return length;
-} 
+    switch(c) {
+    case 'G': id = PLAYER_LORD_GODALMING; break;
+    case 'S': id = PLAYER_DR_SEWARD; break;
+    case 'H': id = PLAYER_VAN_HELSING; break;
+    case 'M': id = PLAYER_MINA_HARKER; break;
+    case 'D': id = PLAYER_DRACULA; break;
+    default: id = -1; break;
+    }
+
+    return id;
+
+}
+
+static void frontInsert(LocationID *trail, char *location) {
+    assert(trail != NULL);
+    
+    int i;
+    for(i = TRAIL_SIZE - 1; i > 0; i--) trail[i] = trail[i-1];
+
+    trail[i] = id;
+}
 
 
