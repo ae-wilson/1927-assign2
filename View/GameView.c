@@ -40,7 +40,7 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
     }
      
 
-    //Put the state of the game into the ADT
+    //Adding the state of the game into the ADT
     assert(rmSpaceLen(pastPlays) % 7 == 0);
     gameView->turn = rmSpaceLen(pastPlays) / 7;
     gameView->score = GAME_START_SCORE;    
