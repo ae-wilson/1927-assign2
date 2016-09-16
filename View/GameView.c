@@ -55,22 +55,66 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
     gameView->health[i] = GAME_START_BLOOD_POINTS;    
 
     int interval = 8;
-    for(i = 0; i < strlen(pastPlays); i = i + interval) {
+    for(i = 0; i < strlen(pastPlays); i += interval) {
         gameView->turn++;
         PlayerID player = whichPlayer(pastPlays[i]);
-        assert(player != -1); //unknown player
 
-        char location[2];
+        char *location = malloc(2 * sizeof(char));
+        assert(location != NULL);
         location[0] = pastPlays[i+1];
         location[1] = pastPlays[i+2];
-        
-        frontInsert(gameView->trail[player], abbrevToID(location));
+ 
+        frontInsert(gameView->trail[player], location);
+
+        if(player < PLAYER_DRACULA) {
+            if(gameView->health[player] == 0) {
+                gameView->health[player] = GAME_START_HUNTER_LIFE_POINTS;
+            }
+
+            for(j = i + 3; j < i + interval - 1; j++) {
+                if(pastPlays[j] == '.') break;                
+
+                if(pastPlays[j] == 'T') {
+                    gameView->health[player] -= LIFE_LOSS_TRAP_ENCOUNTER; 
+                } else if(pastPlays[j] == 'D') {
+                    gameView->health[player] -= LIFE_LOSS_DRACULA_ENCOUNTER;
+                    gameView->health[PLAYER_DRACULA] -= LIFE_LOSS_HUNTER_ENCOUNTER;   
+                }
+
+                if(gameView->health[player] <= 0) {
+                    gameView->health[player] = 0;
+                    gameView->score -= SCORE_LOSS_HUNTER_HOSPITAL;
+                    break;
+                } 
+            }
+            
+            if((gameView->trail[player][0] == gameView->trail[player][1]) && 
+                gameView->health[player] > 0) {
+               
+                gameView->health[player] += LIFE_GAIN_REST;
+                if(gameView->health[player] > GAME_START_HUNTER_LIFE_POINTS) {
+                    gameView->health[player] = GAME_START_HUNTER_LIFE_POINTS;
+                }
+            } 
+            
+        } else {
+            if(pastPlays[i+5] == 'V') gameView->score -= SCORE_LOSS_VAMPIRE_MATURES;
+           
+            if(gameView->trail[player][0] == CASTLE_DRACULA) {
+                gameView->health[player] += LIFE_GAIN_CASTLE_DRACULA;
+            } else if(gameView->trail[player][0] >= ADRIATIC_SEA && gameView->trail[player][0] <= ZURICH) {
+               if(idToType(gameView->trail[player][0]) == SEA) gameView->health[player] -= LIFE_LOSS_SEA;
+            }
+
+            gameView->score -= SCORE_LOSS_DRACULA_TURN;    
+        }
     }  
+     
+    
+    /*printf("Messages: \n");
+    int y = 0;
+    for(y = 0; y < gameView->turn - 1; y++) printf("%s\n", messages[y]); */ //ignore this in this C file
 
-
-    gameView->ms = &messages[0];
-    assert(gameView->ms != NULL);     
-       
     return gameView;
 }
      
@@ -93,36 +137,36 @@ void disposeGameView(GameView toBeDeleted)
 // Get the current round
 Round getRound(GameView currentView)
 {
-    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    return 0;
+    Round round = (Round) ((currentView->turn - 1) / 5);
+    return round;
 }
 
 // Get the id of current player - ie whose turn is it?
 PlayerID getCurrentPlayer(GameView currentView)
 {
-    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    return 0;
+    PlayerID player = (PlayerID) ((currentView->turn - 1) % NUM_PLAYERS);
+    return player;
 }
 
 // Get the current score
 int getScore(GameView currentView)
 {
     //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    return 0;
+    return currentView->score;
 }
 
 // Get the current health points for a given player
 int getHealth(GameView currentView, PlayerID player)
 {
     //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    return 0;
+    return currentView->health[player];
 }
 
 // Get the current location id of a given player
 LocationID getLocation(GameView currentView, PlayerID player)
 {
     //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    return 0;
+    return currentView->trail[player][0];
 }
 
 //// Functions that return information about the history of the game
@@ -160,17 +204,58 @@ static PlayerID whichPlayer(char c) {
     default: id = -1; break;
     }
 
+    assert(id >= PLAYER_LORD_GODALMING && id <= PLAYER_DRACULA);
     return id;
 
 }
 
 static void frontInsert(LocationID *trail, char *location) {
     assert(trail != NULL);
-    
-    int i;
-    for(i = TRAIL_SIZE - 1; i > 0; i--) trail[i] = trail[i-1];
+    assert(location != NULL);    
 
-    trail[i] = id;
+    char *unknown_city = "C?";
+    char *unknown_sea = "S?";
+    char *hide = "HI";
+    char *teleport = "TP";
+    char *db[5] = {"D1", "D2", "D3", "D4", "D5"};
+   
+    LocationID id = UNKNOWN_LOCATION;
+   
+    if(strcmp(location, unknown_city) == 0) {
+        id = CITY_UNKNOWN;
+    } else if(strcmp(location, unknown_sea) == 0) {
+        id = SEA_UNKNOWN;
+    } else if(strcmp(location, hide) == 0) {
+        id = HIDE;
+    } else if(strcmp(location, teleport) == 0) {
+        id = TELEPORT;
+    } else {
+       int i;
+       for(i = 1; i <= 5; i++) {
+           if(strcmp(location, db[i-1]) == 0) break;
+       }
+
+       if(i == 1) {
+           id = DOUBLE_BACK_1;
+       } else if(i == 2) {
+           id = DOUBLE_BACK_2;
+       } else if(i == 3) {
+           id = DOUBLE_BACK_3;
+       } else if(i == 4) {
+           id = DOUBLE_BACK_4;
+       } else if(i == 5) {
+           id = DOUBLE_BACK_5;
+       } else {
+           id = abbrevToID(location);
+       }
+    }
+
+    assert((id >= UNKNOWN_LOCATION && id <= ZURICH) || (id >= CITY_UNKNOWN && id <= TELEPORT));
+
+    int j;
+    for(j = TRAIL_SIZE - 1; j > 0; j--) trail[j] = trail[j-1];
+
+    trail[j] = id;
 }
 
 
