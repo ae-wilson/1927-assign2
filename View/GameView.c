@@ -18,6 +18,7 @@ struct gameView {
    PlayerMessage *ms; 
 }; 
 
+//Private functions
 static PlayerID whichPlayer(char c);
 static void frontInsert(LocationID *trail, char *location);
 
@@ -44,8 +45,7 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
        }
     }
      
-
-    //Adding the state of the game into the ADT
+    //Update the state of the game
     gameView->turn = 1;
     gameView->score = GAME_START_SCORE;    
 
@@ -56,31 +56,37 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
 
     int interval = 8;
     for(i = 0; i < strlen(pastPlays); i += interval) {
-        gameView->turn++;
-        PlayerID player = whichPlayer(pastPlays[i]);
+        gameView->turn++;  //increase the turn number
+        PlayerID player = whichPlayer(pastPlays[i]);  //find out which player
 
-        char *location = malloc(2 * sizeof(char));
+        char *location = malloc(2 * sizeof(char));    //get the abbrev of locations
         assert(location != NULL);
         location[0] = pastPlays[i+1];
         location[1] = pastPlays[i+2];
  
-        frontInsert(gameView->trail[player], location);
+        frontInsert(gameView->trail[player], location); //update the trail
+        free(location);
 
+        //player = one of the hunters
         if(player < PLAYER_DRACULA) {
+            //if HP = 0 in last turn, HP = 9 in this turn 
             if(gameView->health[player] == 0) {
                 gameView->health[player] = GAME_START_HUNTER_LIFE_POINTS;
             }
 
             for(j = i + 3; j < i + interval - 1; j++) {
-                if(pastPlays[j] == '.') break;                
+                if(pastPlays[j] == '.') break;  //no encounters            
 
+                //trigger the trap(s)
                 if(pastPlays[j] == 'T') {
-                    gameView->health[player] -= LIFE_LOSS_TRAP_ENCOUNTER; 
+                    gameView->health[player] -= LIFE_LOSS_TRAP_ENCOUNTER;
                 } else if(pastPlays[j] == 'D') {
+                    //confront Dracula
                     gameView->health[player] -= LIFE_LOSS_DRACULA_ENCOUNTER;
                     gameView->health[PLAYER_DRACULA] -= LIFE_LOSS_HUNTER_ENCOUNTER;   
                 }
 
+                //no more actions when HP gets to ZERO
                 if(gameView->health[player] <= 0) {
                     gameView->health[player] = 0;
                     gameView->score -= SCORE_LOSS_HUNTER_HOSPITAL;
@@ -90,22 +96,28 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
             
             if((gameView->trail[player][0] == gameView->trail[player][1]) && 
                 gameView->health[player] > 0) {
-               
+                //take rest at the same location
                 gameView->health[player] += LIFE_GAIN_REST;
+
+                //make sure Hunter HP does not exceed the limit (HP: 9)
                 if(gameView->health[player] > GAME_START_HUNTER_LIFE_POINTS) {
                     gameView->health[player] = GAME_START_HUNTER_LIFE_POINTS;
                 }
             } 
             
         } else {
+            //player = Dracula
             if(pastPlays[i+5] == 'V') gameView->score -= SCORE_LOSS_VAMPIRE_MATURES;
            
             if(gameView->trail[player][0] == CASTLE_DRACULA) {
+                //gain HP as Dracula is in his castle
                 gameView->health[player] += LIFE_GAIN_CASTLE_DRACULA;
             } else if(gameView->trail[player][0] >= ADRIATIC_SEA && gameView->trail[player][0] <= ZURICH) {
-               if(idToType(gameView->trail[player][0]) == SEA) gameView->health[player] -= LIFE_LOSS_SEA;
+                //lose 2 HP when Dracula is at the sea
+                if(idToType(gameView->trail[player][0]) == SEA) gameView->health[player] -= LIFE_LOSS_SEA;
             }
 
+            //score -= 1 when Dracula ends his turn
             gameView->score -= SCORE_LOSS_DRACULA_TURN;    
         }
     }  
@@ -191,7 +203,7 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
 }
 
 
-
+//Private functions
 static PlayerID whichPlayer(char c) {
     PlayerID id;   
 
