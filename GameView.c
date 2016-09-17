@@ -14,8 +14,7 @@ struct gameView {
    int turn;
    int score;
    int *health;
-   LocationID **trail; // returns single trail array 
-   LocationID **trail_perPlayer; // stores trail for each player 
+   LocationID **trail_perPlayer; // stores trail for each player in 2D array
    PlayerMessage *ms; 
 }; 
 
@@ -34,20 +33,18 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
     assert(gameView->g != NULL);
     gameView->health = malloc(NUM_PLAYERS * sizeof(int));
     assert(gameView->health != NULL);
-    gameView->trail = malloc(TRAIL_SIZE * sizeof(int *));
-    assert(gameView->trail != NULL);
+    gameView->trail_perPlayer = malloc(TRAIL_SIZE * TRAIL_SIZE * sizeof(int*));
+    assert(gameView->trail_perPlayer != NULL);
  
     int i, j = 0;
     for(i = 0; i < NUM_PLAYERS; i++) {
-       gameView->trail[i] = malloc(TRAIL_SIZE * sizeof(int));
-       assert(gameView->trail[i] != NULL);
-
-       // storing in 2d array to keep track then copy into initial trail array
-       for(j = 0; j < TRAIL_SIZE; j++) {
-          gameView->trail_perPlayer[i][j] = UNKNOWN_LOCATION;
-       }
+        for(j = 0; j < TRAIL_SIZE; j++){
+            gameView->trail_perPlayer[i][j] = UNKNOWN_LOCATION;
+            
+        }
     }
-     
+    assert(gameView->trail_perPlayer != NULL);
+
     //Update the state of the game
     gameView->turn = 1;
     gameView->score = GAME_START_SCORE;    
@@ -139,7 +136,6 @@ void disposeGameView(GameView toBeDeleted)
     assert(toBeDeleted != NULL);
     assert(toBeDeleted->g != NULL);
     assert(toBeDeleted->health != NULL);
-    assert(toBeDeleted->trail != NULL);
     assert(toBeDeleted->trail_perPlayer != NULL);
     assert(toBeDeleted->ms != NULL);
 
@@ -147,7 +143,6 @@ void disposeGameView(GameView toBeDeleted)
 
     free(toBeDeleted->g);
     free(toBeDeleted->health);
-    free(toBeDeleted->trail);
     free(toBeDeleted->trail_perPlayer);
     free(toBeDeleted->ms);
     free(toBeDeleted);
@@ -198,7 +193,6 @@ void getHistory(GameView currentView, PlayerID player,
     assert(currentView->trail_perPlayer != NULL);
 
     for(int i = 0; i < TRAIL_SIZE; i++) trail[i] = currentView->trail_perPlayer[player][i];
-    
 }
 
 //// Functions that query the map to find information about connectivity
@@ -218,6 +212,7 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
 
 // Returns Id of current player
 static PlayerID whichPlayer(char c) {
+
     PlayerID id;   
 
     switch(c) {
@@ -236,7 +231,6 @@ static PlayerID whichPlayer(char c) {
 
 // Inserts previous location to trail accordingly 
 static void frontInsert(LocationID **trail_perPlayer, PlayerID player, char *location) {
-
 
     assert(trail_perPlayer != NULL);
     assert(location != NULL);    
