@@ -63,6 +63,7 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
 
         char *location = malloc(4 * sizeof(char));    //get the abbrev of locations
         assert(location != NULL);
+        memset(location, 0, 4);
         location[0] = pastPlays[i+1];
         location[1] = pastPlays[i+2];
 
@@ -115,7 +116,22 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
                 gameView->health[player] += LIFE_GAIN_CASTLE_DRACULA;
             } else if(gameView->trail_perPlayer[player][0] >= ADRIATIC_SEA && gameView->trail_perPlayer[player][0] <= ZURICH) {
                 //lose 2 HP when Dracula is at the sea
-                if(idToType(gameView->trail_perPlayer[player][0]) == SEA) gameView->health[player] -= LIFE_LOSS_SEA;
+
+                if(idToType(gameView->trail_perPlayer[player][0]) == SEA) {
+                    gameView->health[player] -= LIFE_LOSS_SEA;
+                } 
+            } else if(gameView->trail_perPlayer[player][0] >= SEA_UNKNOWN) {
+                gameView->health[player] -= LIFE_LOSS_SEA;
+            } else if(gameView->trail_perPlayer[player][0] >= DOUBLE_BACK_1 && gameView->trail_perPlayer[player][0] <= DOUBLE_BACK_5) {
+                int steps = gameView->trail_perPlayer[player][0] - DOUBLE_BACK_1 + 1;
+                
+                if(gameView->trail_perPlayer[player][steps] >= ADRIATIC_SEA && gameView->trail_perPlayer[player][steps] <= ZURICH) {
+                    if(idToType(gameView->trail_perPlayer[player][steps]) == SEA) {
+                        gameView->health[player] -= LIFE_LOSS_SEA; 
+                    }
+                } else if(gameView->trail_perPlayer[player][steps] == SEA_UNKNOWN) {
+                    gameView->health[player] -= LIFE_LOSS_SEA;
+                }
             }
 
             //score -= 1 when Dracula ends his turn
@@ -144,7 +160,6 @@ void disposeGameView(GameView toBeDeleted)
 
     disposeMap(toBeDeleted->g);
     free(toBeDeleted->health);
-    free(toBeDeleted->trail_perPlayer);
     free(toBeDeleted);
 }
 
