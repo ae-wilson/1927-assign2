@@ -14,17 +14,17 @@ struct gameView {
    int turn;
    int score;
    int *health;
-   LocationID **trail;     
-   PlayerMessage *ms; 
+   LocationID **trail_perPlayer; // stores trail for each player in 2D array
 }; 
 
-//Private functions
+// Private functions
 static PlayerID whichPlayer(char c);
-static void frontInsert(LocationID *trail, char *location);
+static void frontInsert(LocationID **trail_perPlayer, PlayerID player, char *location);
 
 // Creates a new GameView to summarise the current state of the game
 GameView newGameView(char *pastPlays, PlayerMessage messages[])
 {
+
     //Initialising the GameView ADT
     GameView gameView = malloc(sizeof(struct gameView));
     assert(gameView != NULL);
@@ -32,19 +32,20 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
     assert(gameView->g != NULL);
     gameView->health = malloc(NUM_PLAYERS * sizeof(int));
     assert(gameView->health != NULL);
-    gameView->trail = malloc(NUM_PLAYERS * sizeof(int *));
-    assert(gameView->trail != NULL);
+    gameView->trail_perPlayer = malloc(NUM_PLAYERS * sizeof(int*));
+    assert(gameView->trail_perPlayer != NULL);
  
     int i, j = 0;
     for(i = 0; i < NUM_PLAYERS; i++) {
-       gameView->trail[i] = malloc(TRAIL_SIZE * sizeof(int));
-       assert(gameView->trail[i] != NULL);
+        gameView->trail_perPlayer[i] = malloc(TRAIL_SIZE * sizeof(int));
+        assert(gameView->trail_perPlayer[i] != NULL);
 
-       for(j = 0; j < TRAIL_SIZE; j++) {
-          gameView->trail[i][j] = UNKNOWN_LOCATION;
-       }
+        for(j = 0; j < TRAIL_SIZE; j++){
+            gameView->trail_perPlayer[i][j] = UNKNOWN_LOCATION;
+            
+        }
     }
-     
+
     //Update the state of the game
     gameView->turn = 1;
     gameView->score = GAME_START_SCORE;    
@@ -55,16 +56,17 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
     gameView->health[i] = GAME_START_BLOOD_POINTS;    
 
     int interval = 8;
+
     for(i = 0; i < strlen(pastPlays); i += interval) {
         gameView->turn++;  //increase the turn number
         PlayerID player = whichPlayer(pastPlays[i]);  //find out which player
 
-        char *location = malloc(2 * sizeof(char));    //get the abbrev of locations
+        char *location = malloc(4 * sizeof(char));    //get the abbrev of locations
         assert(location != NULL);
         location[0] = pastPlays[i+1];
         location[1] = pastPlays[i+2];
- 
-        frontInsert(gameView->trail[player], location); //update the trail
+
+        frontInsert(gameView->trail_perPlayer, player, location); //update the trail_perPlayer
         free(location);
 
         //player = one of the hunters
@@ -94,7 +96,7 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
                 } 
             }
             
-            if((gameView->trail[player][0] == gameView->trail[player][1]) && 
+            if((gameView->trail_perPlayer[player][0] == gameView->trail_perPlayer[player][1]) && 
                 gameView->health[player] > 0) {
                 //take rest at the same location
                 gameView->health[player] += LIFE_GAIN_REST;
@@ -103,18 +105,17 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
                 if(gameView->health[player] > GAME_START_HUNTER_LIFE_POINTS) {
                     gameView->health[player] = GAME_START_HUNTER_LIFE_POINTS;
                 }
-            } 
-            
+            }         
         } else {
             //player = Dracula
             if(pastPlays[i+5] == 'V') gameView->score -= SCORE_LOSS_VAMPIRE_MATURES;
            
-            if(gameView->trail[player][0] == CASTLE_DRACULA) {
+            if(gameView->trail_perPlayer[player][0] == CASTLE_DRACULA) {
                 //gain HP as Dracula is in his castle
                 gameView->health[player] += LIFE_GAIN_CASTLE_DRACULA;
-            } else if(gameView->trail[player][0] >= ADRIATIC_SEA && gameView->trail[player][0] <= ZURICH) {
+            } else if(gameView->trail_perPlayer[player][0] >= ADRIATIC_SEA && gameView->trail_perPlayer[player][0] <= ZURICH) {
                 //lose 2 HP when Dracula is at the sea
-                if(idToType(gameView->trail[player][0]) == SEA) gameView->health[player] -= LIFE_LOSS_SEA;
+                if(idToType(gameView->trail_perPlayer[player][0]) == SEA) gameView->health[player] -= LIFE_LOSS_SEA;
             }
 
             //score -= 1 when Dracula ends his turn
@@ -122,14 +123,8 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
         }
     }  
      
-    
-    /*printf("Messages: \n");
-    int y = 0;
-    for(y = 0; y < gameView->turn - 1; y++) printf("%s\n", messages[y]); */ //ignore this in this C file
-
     return gameView;
 }
-     
      
 // Frees all memory previously allocated for the GameView toBeDeleted
 void disposeGameView(GameView toBeDeleted)
@@ -137,14 +132,23 @@ void disposeGameView(GameView toBeDeleted)
     assert(toBeDeleted != NULL);
     assert(toBeDeleted->g != NULL);
     assert(toBeDeleted->health != NULL);
+    assert(toBeDeleted->trail_perPlayer != NULL);
+
+    int i = 0;
+    for(i = 0; i < NUM_PLAYERS; i++) {
+        assert(toBeDeleted->trail_perPlayer[i] != NULL);
+        free(toBeDeleted->trail_perPlayer[i]); 
+    }
+    free(toBeDeleted->trail_perPlayer);
+ 
 
     disposeMap(toBeDeleted->g);
     free(toBeDeleted->health);
+    free(toBeDeleted->trail_perPlayer);
     free(toBeDeleted);
 }
 
-
-//// Functions to return simple information about the current state of the game
+//// Functions that return simple information about the current state of the game
 
 // Get the current round
 Round getRound(GameView currentView)
@@ -163,22 +167,19 @@ PlayerID getCurrentPlayer(GameView currentView)
 // Get the current score
 int getScore(GameView currentView)
 {
-    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
     return currentView->score;
 }
 
 // Get the current health points for a given player
 int getHealth(GameView currentView, PlayerID player)
 {
-    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
     return currentView->health[player];
 }
 
 // Get the current location id of a given player
 LocationID getLocation(GameView currentView, PlayerID player)
 {
-    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    return currentView->trail[player][0];
+    return currentView->trail_perPlayer[player][0];
 }
 
 //// Functions that return information about the history of the game
@@ -187,7 +188,13 @@ LocationID getLocation(GameView currentView, PlayerID player)
 void getHistory(GameView currentView, PlayerID player,
                             LocationID trail[TRAIL_SIZE])
 {
-    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+    assert(currentView != NULL);
+    assert(currentView->g != NULL);
+    assert(currentView->trail_perPlayer != NULL);
+    assert(currentView->trail_perPlayer[player] != NULL);
+
+    int i;
+    for(i = 0; i < TRAIL_SIZE; i++) trail[i] = currentView->trail_perPlayer[player][i];
 }
 
 //// Functions that query the map to find information about connectivity
@@ -199,11 +206,13 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
                                int road, int rail, int sea)
 {
     //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+
     return NULL;
 }
 
+// *** Private Functions ***
 
-//Private functions
+// Returns Id of current player
 static PlayerID whichPlayer(char c) {
     PlayerID id;   
 
@@ -218,11 +227,13 @@ static PlayerID whichPlayer(char c) {
 
     assert(id >= PLAYER_LORD_GODALMING && id <= PLAYER_DRACULA);
     return id;
-
 }
 
-static void frontInsert(LocationID *trail, char *location) {
-    assert(trail != NULL);
+// Inserts previous location to trail accordingly 
+static void frontInsert(LocationID **trail_perPlayer, PlayerID player, char *location) {
+
+    assert(trail_perPlayer != NULL);
+    assert(trail_perPlayer[player] != NULL);
     assert(location != NULL);    
 
     char *unknown_city = "C?";
@@ -265,9 +276,7 @@ static void frontInsert(LocationID *trail, char *location) {
     assert((id >= UNKNOWN_LOCATION && id <= ZURICH) || (id >= CITY_UNKNOWN && id <= TELEPORT));
 
     int j;
-    for(j = TRAIL_SIZE - 1; j > 0; j--) trail[j] = trail[j-1];
+    for(j = TRAIL_SIZE - 1; j > 0; j--) trail_perPlayer[player][j] = trail_perPlayer[player][j-1];
 
-    trail[j] = id;
+    trail_perPlayer[player][j] = id;
 }
-
-
