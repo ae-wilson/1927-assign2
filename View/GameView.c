@@ -24,7 +24,6 @@ static void frontInsert(LocationID **trail_perPlayer, PlayerID player, char *loc
 // Creates a new GameView to summarise the current state of the game
 GameView newGameView(char *pastPlays, PlayerMessage messages[])
 {
-
     //Initialising the GameView ADT
     GameView gameView = malloc(sizeof(struct gameView));
     assert(gameView != NULL);
@@ -41,8 +40,7 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
         assert(gameView->trail_perPlayer[i] != NULL);
 
         for(j = 0; j < TRAIL_SIZE; j++){
-            gameView->trail_perPlayer[i][j] = UNKNOWN_LOCATION;
-            
+            gameView->trail_perPlayer[i][j] = UNKNOWN_LOCATION;           
         }
     }
 
@@ -157,7 +155,6 @@ void disposeGameView(GameView toBeDeleted)
     }
     free(toBeDeleted->trail_perPlayer);
  
-
     disposeMap(toBeDeleted->g);
     free(toBeDeleted->health);
     free(toBeDeleted);
