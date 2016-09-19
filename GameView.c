@@ -204,9 +204,83 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
                                int road, int rail, int sea)
 {
     //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+    assert(currentView != NULL);    // check that there is currently a player
+    assert(numLocations != NULL);   // check that there is a location to visit
 
-    return NULL;
+    // initialise the size of connected locations
+    LocationID *connectedLocations = malloc(sizeof(LocationID) * NUM_MAP_LOCATIONS);
+
+
+    // connectedLocations() returns an array of LocationID that represent
+    // all locations that are connected to the given LocationID.
+    //int array[100];
+    // The destination 'from' should be included in the array
+//    array[0] = from;
+
+    // The size of the array is stored in the variable pointed to by numLocations
+    int numOfLoc = 0;    //counter to check how many total locations
+    int currLoc = 0;     //currLoc keeps track of players current location
+
+    // the first location (location address '0') was the initial location
+    connectedLocations[currLoc] = from;
+
+    // Rail moves: The maximum distance that can be moved via rail is determined by the sum$
+    int railMoves = (round + player) % 4;
+    VList curr;
+
+    // scan through all available locations until no more locations are found using dfs alg$
+    if(player == PLAYER_DRACULA){
+    // Your function must take into account that Dracula can't move to the hospital
+        while(curr != NULL){
+//        while(from != NULL){
+            if(road == TRUE){
+                // hospital is only accessed by road
+                assert(from != ST_JOSEPH_AND_ST_MARYS);
+//                array[numOfLoc] = road;
+                numOfLoc++;
+            } else if(sea == TRUE){
+                // loses 2 blood points
+//                array[numOfLoc] = sea;
+                numOfLoc++;
+            }
+            // the player has moved so the current location has too
+            connectedLocations[currLoc] = curr->v;
+            curr = curr->next;
+        }
+    } else {    // player is a hunter
+        while(curr != NULL){
+            if(road == TRUE){
+//                array[numOfLoc] = road;
+                numOfLoc++;
+
+            } else if(rail == TRUE && railMoves != 0){
+                // hunters can move to multiple cities by rail
+                // if railMoves allows
+                while(railMoves > 0){
+//                    array[numOfLoc] = rail;
+            // the player has moved so the current location has too
+                    connectedLocations[currLoc] = curr->v;
+
+                    numOfLoc++;
+                    railMoves--;
+                }
+            } else if(sea == TRUE){
+//                array[numOfLoc] = sea;
+                numOfLoc++;
+            }
+            // the player has moved so the current location has too
+            connectedLocations[currLoc] = curr->v;
+            curr = curr->next;
+        }
+    }
+
+
+    // The size of the array is stored in the variable pointed to by numLocations
+    *numLocations = numOfLoc;
+//    return NULL;
+    return connectedLocations;
 }
+
 
 // *** Private Functions ***
 
