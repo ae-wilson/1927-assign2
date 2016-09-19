@@ -263,7 +263,7 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
                 }
             }
             // the player has moved so the current location has too
-            connectedLocations[currLoc] = curr->v;
+            //connectedLocations[currLoc] = curr->v;
             curr = curr->next;
         }
     } else {    // player is a hunter
