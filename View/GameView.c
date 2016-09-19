@@ -249,12 +249,18 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
             if(road == TRUE){
                 // hospital is only accessed by road
                 assert(from != ST_JOSEPH_AND_ST_MARYS);
+                if(curr->type == ROAD){
+                   currentLocation[numOfLoc++] = curr->v;
+                }
 //                array[numOfLoc] = road;
-                numOfLoc++;
+                //numOfLoc++;
             } else if(sea == TRUE){
                 // loses 2 blood points
 //                array[numOfLoc] = sea;
-                numOfLoc++;
+                //numOfLoc++;
+                if(curr->type == SEA){
+                   currentLocation[numOfLoc++] = curr->v;
+                }
             }
             // the player has moved so the current location has too
             connectedLocations[currLoc] = curr->v;
@@ -264,7 +270,10 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
         while(curr != NULL){
             if(road == TRUE){
 //                array[numOfLoc] = road;
-                numOfLoc++;
+                //numOfLoc++;
+                if(curr->type == ROAD){
+                   currentLocation[numOfLoc++] = curr->v;
+                }
 
             } else if(rail == TRUE && railMoves != 0){
                 // hunters can move to multiple cities by rail
@@ -272,17 +281,23 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
                 while(railMoves > 0){
 //                    array[numOfLoc] = rail;
             // the player has moved so the current location has too
-                    connectedLocations[currLoc] = curr->v;
+                    //connectedLocations[currLoc] = curr->v;
+                  if(curr->type == RAIL){
+                      currentLocation[numOfLoc++] = curr->v;
+                  }
 
-                    numOfLoc++;
+                    //numOfLoc++;
                     railMoves--;
                 }
             } else if(sea == TRUE){
 //                array[numOfLoc] = sea;
-                numOfLoc++;
+                //numOfLoc++;
+                if(curr->type == SEA){
+                   currentLocation[numOfLoc++] = curr->v;
+                }
             }
             // the player has moved so the current location has too
-            connectedLocations[currLoc] = curr->v;
+            //connectedLocations[currLoc] = curr->v;
             curr = curr->next;
         }
     }
