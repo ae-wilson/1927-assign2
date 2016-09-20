@@ -8,16 +8,12 @@
 #include "Game.h"
 #include "GameView.h"
 #include "Map.h"
+#include "Queue.h"
 
+#define TRUE 1
+#define FALSE 0
 
-typedef struct vNode *VList;
-
-struct vNode {
-   LocationID  v;    // ALICANTE, etc
-   TransportID type; // ROAD, RAIL, BOAT
-   VList       next; // link to next node
-};
-
+//ADT(s)
 struct gameView {
    Map g;
    int turn;
@@ -26,9 +22,25 @@ struct gameView {
    LocationID **trail_perPlayer; // stores trail for each player in 2D array
 }; 
 
+
+typedef struct vNode *VList;
+struct vNode {
+   LocationID  v;    // location id
+   TransportID type; // ROAD, RAIL, BOAT
+   VList       next; 
+};
+
+struct MapRep {
+   int nV;
+   int nE;
+   VList connections[NUM_MAP_LOCATIONS]; 
+};
+
+
 // Private functions
 static PlayerID whichPlayer(char c);
 static void frontInsert(LocationID **trail_perPlayer, PlayerID player, char *location);
+static void railConnection(GameView gameView, int *reachable, LocationID from, int railMoves);
 
 // Creates a new GameView to summarise the current state of the game
 GameView newGameView(char *pastPlays, PlayerMessage messages[])
@@ -225,106 +237,78 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
                                LocationID from, PlayerID player, Round round,
                                int road, int rail, int sea)
 {
-    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
     assert(currentView != NULL);    // check that there is currently a player
+    assert(currentView->g != NULL); // check that the Map g in gameView is not a NULL pointer
     assert(numLocations != NULL);   // check that there is a location to visit
+    assert(player >= PLAYER_LORD_GODALMING && player <= PLAYER_DRACULA); 
+    assert(from >= ADRIATIC_SEA && from <= ZURICH);
 
     // initialise the size of connected locations
-    LocationID *connectedLocations = malloc(sizeof(LocationID) * NUM_MAP_LOCATIONS);
+    int *reachable = malloc(NUM_MAP_LOCATIONS * sizeof(int));
+    assert(reachable != NULL);
 
+    memset(reachable, 0, NUM_MAP_LOCATIONS);
+    reachable[from] = 1;
+    
+    VList curr = currentView->g->connections[from]; 
 
-    // connectedLocations() returns an array of LocationID that represent
-    // all locations that are connected to the given LocationID.
-    //int array[100];
-    // The destination 'from' should be included in the array
-//    array[0] = from;
+    if(player == PLAYER_DRACULA) {
+        assert(from != ST_JOSEPH_AND_ST_MARYS); // Darcula is impossibly in the hospital
 
-    // The size of the array is stored in the variable pointed to by numLocations
-    int numOfLoc = 0;    //counter to check how many total locations
-    int currLoc = 0;     //currLoc keeps track of players current location
-
-    // the first location (location address '0') was the initial location
-    connectedLocations[currLoc] = from;
-
-    // Rail moves: The maximum distance that can be moved via rail is determined by the sum$
-    int railMoves = (round + player) % 4;
-    VList curr;
-
-    // scan through all available locations until no more locations are found using dfs alg$
-    if(player == PLAYER_DRACULA){
-    // Your function must take into account that Dracula can't move to the hospital
-        while(curr != NULL){
-//        while(from != NULL){
-            if(road == TRUE){
-                // hospital is only accessed by road
-                assert(from != ST_JOSEPH_AND_ST_MARYS);
-                if(curr->type == ROAD){
-                   currentLocation[numOfLoc++] = curr->v;
-                }
-//                array[numOfLoc] = road;
-                //numOfLoc++;
-            } else if(sea == TRUE){
-                // loses 2 blood points
-//                array[numOfLoc] = sea;
-                //numOfLoc++;
-                if(curr->type == SEA){
-                   currentLocation[numOfLoc++] = curr->v;
-                }
-            }
-            // the player has moved so the current location has too
-            //connectedLocations[currLoc] = curr->v;
-            curr = curr->next;
-        }
-    } else {    // player is a hunter
         while(curr != NULL){
             if(road == TRUE){
-//                array[numOfLoc] = road;
-                //numOfLoc++;
-                if(curr->type == ROAD){
-                   currentLocation[numOfLoc++] = curr->v;
-                }
-
-            } else if(rail == TRUE && railMoves != 0){
-               int counter = 0;
-               int possLoc = 0;
-               checkRail[counter] = curr->v;
-               while(rail == TRUE){
-                  possLoc++;
-               }
-               while(railMoves > 0){
-                  if(rail == TRUE && curr->type == RAIL){
-                     checkRail[counter] = curr->v;
-			            connectedLocations[numOfLoc++] = checkRail[counter];
-		               railMoves--;
-                  }
-               }
-         		int counterRail = 0;
-		         while(counterRail <= counter){
-			         connectedLocations[numOfLoc++] = checkRail[railMoves][counterRail];
-			         counterRail++;
-		         }
-		     } else if(sea == TRUE){
-//                array[numOfLoc] = sea;
-                //numOfLoc++;
-                if(curr->type == SEA){
-                   currentLocation[numOfLoc++] = curr->v;
-                }
+                if(curr->type == ROAD && curr->v != ST_JOSEPH_AND_ST_MARYS) {
+                    reachable[curr->v] = 1;
+					 }
+            } else if(sea == TRUE) {
+				    if(curr->type == BOAT) reachable[curr->v] = 1;            
             }
-            // the player has moved so the current location has too
-            //connectedLocations[currLoc] = curr->v;
+                
             curr = curr->next;
         }
+    } else {    
+        // player is a hunter
+
+        while(curr != NULL) {
+            if(road == TRUE) {
+                if(curr->type == ROAD) reachable[curr->v] = 1;                
+            } else if(sea == TRUE) {
+                if(curr->type == BOAT) reachable[curr->v] = 1;
+            }
+
+            curr = curr->next;
+        }   
+
+        // Rail moves: The maximum distance that can be moved via rail is determined by the sum$
+        int railMoves = (round + player) % 4;
+        if(rail == TRUE && railMoves == 1) {
+            curr = currentView->g->connections[from];
+            while(curr != NULL) {
+                if(curr->type == RAIL) reachable[curr->v] = 1;
+                curr = curr->next;
+            }
+        } else if(rail == TRUE && railMoves > 1) {
+            railConnection(currentView, reachable, from, railMoves);
+        }
+
     }
 
-
     // The size of the array is stored in the variable pointed to by numLocations
-    *numLocations = numOfLoc;
-//    return NULL;
-    return connectedLocations;
+    LocationID *connLocations = malloc(NUM_MAP_LOCATIONS * sizeof(LocationID));
+    assert(connLocations != NULL);
+
+    int i, length = 0;
+    for(i = 0; i < NUM_MAP_LOCATIONS; i++) {
+        if(reachable[i] == 1) connLocations[length++] = i;
+    }
+
+    assert(length >= 1);
+    *numLocations = length;
+
+    return connLocations;
 }
 
 // *** Private Functions ***
-
 // Returns Id of current player
 static PlayerID whichPlayer(char c) {
     PlayerID id;   
@@ -349,21 +333,17 @@ static void frontInsert(LocationID **trail_perPlayer, PlayerID player, char *loc
     assert(trail_perPlayer[player] != NULL);
     assert(location != NULL);    
 
-    char *unknown_city = "C?";
-    char *unknown_sea = "S?";
-    char *hide = "HI";
-    char *teleport = "TP";
     char *db[5] = {"D1", "D2", "D3", "D4", "D5"};
    
     LocationID id = UNKNOWN_LOCATION;
    
-    if(strcmp(location, unknown_city) == 0) {
+    if(strcmp(location, "C?") == 0) {
         id = CITY_UNKNOWN;
-    } else if(strcmp(location, unknown_sea) == 0) {
+    } else if(strcmp(location, "S?") == 0) {
         id = SEA_UNKNOWN;
-    } else if(strcmp(location, hide) == 0) {
+    } else if(strcmp(location, "HI") == 0) {
         id = HIDE;
-    } else if(strcmp(location, teleport) == 0) {
+    } else if(strcmp(location, "TP") == 0) {
         id = TELEPORT;
     } else {
        int i;
@@ -389,7 +369,70 @@ static void frontInsert(LocationID **trail_perPlayer, PlayerID player, char *loc
     assert((id >= UNKNOWN_LOCATION && id <= ZURICH) || (id >= CITY_UNKNOWN && id <= TELEPORT));
 
     int j;
-    for(j = TRAIL_SIZE - 1; j > 0; j--) trail_perPlayer[player][j] = trail_perPlayer[player][j-1];
+    for(j = TRAIL_SIZE - 1; j > 0; j--) {
+        trail_perPlayer[player][j] = trail_perPlayer[player][j-1];
+    }
 
     trail_perPlayer[player][j] = id;
 }
+
+static void railConnection(GameView gameView, int *reachable, LocationID from, int railMoves) {
+    assert(gameView != NULL);
+    assert(gameView->g != NULL);
+    assert(reachable != NULL);
+    assert(from >= ADRIATIC_SEA && from <= ZURICH);
+    assert(railMoves == 2 || railMoves == 3);
+
+    int roundCheck = railMoves - 1;
+    Queue *qList = malloc(roundCheck * sizeof(Queue *));
+    assert(qList != NULL);
+
+    int i;
+    for(i = 0; i < roundCheck; i++) {
+        qList[i] = newQueue();
+        assert(qList[i] != NULL);
+    }
+    
+    VList curr = gameView->g->connections[from];
+    while(curr != NULL) {
+        if(curr->type == RAIL) {
+            reachable[curr->v] = 1;    
+            enterQueue(qList[0], curr->v); 
+        }
+
+        curr = curr->next;
+    }    
+
+
+    int *visited = malloc(NUM_MAP_LOCATIONS * sizeof(int));
+    assert(visited != NULL);
+    memset(visited, 0, NUM_MAP_LOCATIONS);
+    visited[from] = 1; 
+
+    for(i = 0; i < roundCheck; i++) {
+        while(!emptyQueue(qList[i])) {
+            LocationID s = leaveQueue(qList[i]);
+            if(visited[s] == 1) continue;
+            visited[s] = 1;
+
+            curr = gameView->g->connections[s];
+            while(curr != NULL) {
+                if(curr->type == RAIL) {
+                    reachable[curr->v] = 1;
+
+                    if(!visited[curr->v] && i+1 < roundCheck)  enterQueue(qList[i+1], curr->v);
+                }
+            }
+        }
+    }
+
+    for(i = 0; i < roundCheck; i++) {
+        assert(qList[i] != NULL);
+        disposeQueue(qList[i]);
+    }
+
+    free(qList);
+    free(visited);
+}
+
+

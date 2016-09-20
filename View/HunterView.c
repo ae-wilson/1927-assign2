@@ -32,12 +32,12 @@ HunterView newHunterView(char *pastPlays, PlayerMessage messages[])
     
     int turn = getRound(hunterView->gameView) * NUM_PLAYERS + getCurrentPlayer(hunterView->gameView); 
     if(turn > 0) {
-        hunterView->ms = malloc((turn + 4) * sizeof(char *));
+        hunterView->ms = malloc(turn * sizeof(PlayerMessage));
         assert(hunterView->ms != NULL);
         
         int i;
         for(i = 0; i < turn; i++) {
-            //assert(hunterView->ms[i] != NULL);
+            assert(hunterView->ms[i] != NULL);
             strcpy(hunterView->ms[i], messages[i]);
         }
     }
