@@ -254,7 +254,7 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
                 // loses 2 blood points
 //                array[numOfLoc] = sea;
                 //numOfLoc++;
-                if(curr->type == SEA){
+                if(curr->type == BOAT){
                    currentLocation[numOfLoc++] = curr->v;
                 }
             }
@@ -288,7 +288,7 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
             } else if(sea == TRUE){
 //                array[numOfLoc] = sea;
                 //numOfLoc++;
-                if(curr->type == SEA){
+                if(curr->type == BOAT){
                    currentLocation[numOfLoc++] = curr->v;
                 }
             }
