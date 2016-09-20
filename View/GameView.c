@@ -9,6 +9,15 @@
 #include "GameView.h"
 #include "Map.h"
 
+
+typedef struct vNode *VList;
+
+struct vNode {
+   LocationID  v;    // ALICANTE, etc
+   TransportID type; // ROAD, RAIL, BOAT
+   VList       next; // link to next node
+};
+
 struct gameView {
    Map g;
    int turn;
