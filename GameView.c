@@ -235,6 +235,8 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
 
     // Rail moves: The maximum distance that can be moved via rail is determined by the sum$
     int railMoves = (round + player) % 4;
+    int checkRail[railMoves][NUM_MAP_LOCATIONS];
+    
     VList curr;
 
     // scan through all available locations until no more locations are found using dfs alg$
@@ -272,19 +274,24 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
                 }
 
             } else if(rail == TRUE && railMoves != 0){
-                // hunters can move to multiple cities by rail
-                // if railMoves allows
-                while(railMoves > 0){
-//                    array[numOfLoc] = rail;
-            // the player has moved so the current location has too
-                    //connectedLocations[currLoc] = curr->v;
-                  if(curr->type == RAIL){
-                      currentLocation[numOfLoc++] = curr->v;
+               int counter = 0;
+               int possLoc = 0;
+               checkRail[counter] = curr->v;
+               while(rail == TRUE){
+                  possLoc++;
+               }
+               while(railMoves > 0){
+                  if(rail == TRUE && curr->type == RAIL){
+                     checkRail[counter] = curr->v;
+			            connectedLocations[numOfLoc++] = checkRail[counter];
+		               railMoves--;
                   }
-
-                    //numOfLoc++;
-                    railMoves--;
-                }
+               }
+         		int counterRail = 0;
+		         while(counterRail <= counter){
+			         connectedLocations[numOfLoc++] = checkRail[railMoves][counterRail];
+			         counterRail++;
+		         }
             } else if(sea == TRUE){
 //                array[numOfLoc] = sea;
                 //numOfLoc++;
