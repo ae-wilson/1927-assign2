@@ -95,7 +95,7 @@ LocationID *whereCanIgo(DracView currentView, int *numLocations, int road, int s
     //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
     // NOT FINISHED YET!!!!
     // STILL WORKING ON IT!!!!
-    assert(currentView != NULL);
+    /*assert(currentView != NULL);
     assert(numLocations != NULL);
     
     LocationID *whereCanIgo = malloc(sizeof(LocationID) * NUM_MAP_LOCATIONS);
@@ -113,8 +113,8 @@ LocationID *whereCanIgo(DracView currentView, int *numLocations, int road, int s
          curr = curr->next;
     }
     *numLocations = numOfLoc;
-    return whereCanIgo;
-//    return NULL;
+    return whereCanIgo;*/
+    return NULL;
 }
 
 // What are the specified player's next possible moves
@@ -124,7 +124,7 @@ LocationID *whereCanTheyGo(DracView currentView, int *numLocations,
     //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
     // NOT FINISHED!!
     // STILL WORKING ON IT!!!
-    assert(currentView != NULL);
+  /*  assert(currentView != NULL);
     assert(numLocations != NULL);
     LocationID *whereCanTheyGo = malloc(sizeof(LocationID)*NUM_MAP_LOCATIONS);
     int numOfLoc = 0;
@@ -144,5 +144,6 @@ LocationID *whereCanTheyGo(DracView currentView, int *numLocations,
     }
     *numLocations = numOfLoc;
     //return NULL;
-    return whereCanTheyGo;
+    return whereCanTheyGo;*/
+    return NULL;
 }
