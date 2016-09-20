@@ -38,6 +38,7 @@ HunterView newHunterView(char *pastPlays, PlayerMessage messages[])
         int i;
         for(i = 0; i < turn; i++) {
             assert(hunterView->ms[i] != NULL);
+            memset(hunterView->ms[i], 0, MESSAGE_SIZE);
             strcpy(hunterView->ms[i], messages[i]);
         }
     }
@@ -53,7 +54,6 @@ void disposeHunterView(HunterView toBeDeleted)
     assert(toBeDeleted->g != NULL);
     assert(toBeDeleted->gameView != NULL);
 
-    
     int turn = getRound(toBeDeleted->gameView) * NUM_PLAYERS + getCurrentPlayer(toBeDeleted->gameView);  
     if(turn > 0) {
         assert(toBeDeleted->ms != NULL);  
@@ -104,7 +104,7 @@ LocationID whereIs(HunterView currentView, PlayerID player)
 void giveMeTheTrail(HunterView currentView, PlayerID player,
                             LocationID trail[TRAIL_SIZE])
 {
-    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+    getHistory(currentView->gameView, player, trail);   
 }
 
 //// Functions that query the map to find information about connectivity
@@ -113,14 +113,20 @@ void giveMeTheTrail(HunterView currentView, PlayerID player,
 LocationID *whereCanIgo(HunterView currentView, int *numLocations,
                         int road, int rail, int sea)
 {
-    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    return NULL;
+    PlayerID player = getCurrentPlayer(currentView->gameView);
+    LocationID from = getLocation(currentView->gameView, player);
+    Round round = getRound(currentView->gameView);
+
+    LocationID *moves = connectedLocations(currentView->gameView, numLocations, from, player, round, road, rail, sea);
+    return moves;
 }
 
 // What are the specified player's next possible moves
 LocationID *whereCanTheyGo(HunterView currentView, int *numLocations,
                            PlayerID player, int road, int rail, int sea)
 {
-    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+    //LocationID from = getLocation(currentView->gameView. player);
+    //Round round = getRound(currentView->gameView);
+    
     return NULL;
 }

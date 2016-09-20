@@ -1,6 +1,7 @@
 #!/bin/sh
 
 echo =====   Cleaning all the old .o executable files by make clean   =====
+rm *.stackdump
 make clean
 echo ""
 
@@ -8,4 +9,4 @@ echo =====   Compiling the Programs   =====
 make
 echo ""
 
-rm *.stackdump
+echo DONE!
