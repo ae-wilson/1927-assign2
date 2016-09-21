@@ -347,6 +347,11 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
     free(reachable); 
     assert(length >= 1);
     *numLocations = length;
+    
+    /*
+    printf("\n%s connects to:\n", idToName(from));
+    for(i = 0; i < length; i++) printf("-->ID %d: %s\n", connLocations[i], idToName(connLocations[i]));
+    */
 
     return connLocations;
 }
@@ -434,8 +439,7 @@ static void frontInsert(LocationID **trail_perPlayer, PlayerID player, char *loc
 }
 
 static void railConnection(GameView gameView, int *reachable, LocationID from, int railMoves) {
-    assert(gameView != NULL);
-    assert(gameView->g != NULL);
+    validGameView(gameView);
     assert(reachable != NULL);
     assert(from >= MIN_MAP_LOCATION && from <= MAX_MAP_LOCATION);
     assert(railMoves == 2 || railMoves == 3);
@@ -460,15 +464,18 @@ static void railConnection(GameView gameView, int *reachable, LocationID from, i
         curr = curr->next;
     }    
 
-
+    
     int *visited = malloc(NUM_MAP_LOCATIONS * sizeof(int));
     assert(visited != NULL);
     for(i = 0; i < NUM_MAP_LOCATIONS; i++) visited[i] = 0;
     visited[from] = 1; 
 
+    
     for(i = 0; i < roundCheck; i++) {
         while(!emptyQueue(qList[i])) {
             LocationID s = leaveQueue(qList[i]);
+            assert(from >= MIN_MAP_LOCATION && from <= MAX_MAP_LOCATION);
+ 
             if(visited[s] == 1) continue;
             visited[s] = 1;
 
@@ -477,8 +484,10 @@ static void railConnection(GameView gameView, int *reachable, LocationID from, i
                 if(curr->type == RAIL) {
                     reachable[curr->v] = 1;
 
-                    if(!visited[curr->v] && i+1 < roundCheck)  enterQueue(qList[i+1], curr->v);
+                    if(!visited[curr->v] && i+1 < roundCheck) enterQueue(qList[i+1], curr->v);
                 }
+            
+                curr = curr->next;
             }
         }
     }
@@ -490,6 +499,7 @@ static void railConnection(GameView gameView, int *reachable, LocationID from, i
 
     free(qList);
     free(visited);
+    
 }
 
 

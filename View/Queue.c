@@ -32,7 +32,8 @@ Queue newQueue() {
 void disposeQueue(Queue q) {
     if(q == NULL) return;
 
-    Node curr, prev = q->head;
+    Node curr = q->head;
+    Node prev = q->head;
 
     while(curr != NULL) {
         prev = curr;
@@ -40,7 +41,7 @@ void disposeQueue(Queue q) {
         free(prev);
     }
 
-    free(q);
+    free(q); 
 }
 
 void enterQueue(Queue q, LocationID location) {

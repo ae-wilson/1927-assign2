@@ -86,7 +86,7 @@ int main()
 
     printf("Test for connections\n");
     int size, seen[NUM_MAP_LOCATIONS], *edges;
-    gv = newGameView("", messages1);    
+    gv = newGameView("", messages1);  
     printf("Checking Galatz road connections\n");
     edges = connectedLocations(gv,&size,GALATZ,PLAYER_LORD_GODALMING,0,1,0,0);
     memset(seen, 0, NUM_MAP_LOCATIONS*sizeof(int));
