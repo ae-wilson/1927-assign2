@@ -12,8 +12,13 @@
 // #include "Map.h" ... if you decide to use the Map ADT
      
 struct dracView {
-    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    int hello;
+   int hello;
+   Map g;
+   int turn;
+   int score;
+   int *health;
+   LocationID **trail_perPlayer; // stores trail for each player in 2D array
+   GameView gameView;
 };
      
 
@@ -40,8 +45,8 @@ void disposeDracView(DracView toBeDeleted)
 // Get the current round
 Round giveMeTheRound(DracView currentView)
 {
-    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    return 0;
+    Round round = (Round) ((currentView->turn - 1) / 5);
+    return round;
 }
 
 // Get the current score
@@ -61,8 +66,7 @@ int howHealthyIs(DracView currentView, PlayerID player)
 // Get the current location id of a given player
 LocationID whereIs(DracView currentView, PlayerID player)
 {
-    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    return 0;
+    return currentView->trail_perPlayer[player][0];
 }
 
 // Get the most recent move of a given player
