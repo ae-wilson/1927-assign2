@@ -14,6 +14,12 @@ struct hunterView {
      Map g;
      GameView gameView;
      PlayerMessage *ms;
+     int turn;
+     int score;
+     int player;
+     int *health;
+     LocationID **trail_perPlayer; // stores trail for each player in 2D array
+   
 };
      
 
@@ -130,8 +136,20 @@ LocationID *whereCanIgo(HunterView currentView, int *numLocations,
 LocationID *whereCanTheyGo(HunterView currentView, int *numLocations,
                            PlayerID player, int road, int rail, int sea)
 {
-    //LocationID from = getLocation(currentView->gameView. player);
-    //Round round = getRound(currentView->gameView);
-    
-    return NULL;
+        assert(currentView != NULL);    // check that there is currently a player
+        assert(currentView->g != NULL); // check that there is a map in play
+        assert(numLocations != NULL);   // check that there are locations to visit
+        assert(player >= PLAYER_LORD_GODALMING && player <= PLAYER_MINA_HARKER);
+
+        // need to find out the current location of the player
+        LocationID there = whereIs (currentView, player);
+//      assert(there != NULL);
+
+        // need to find out the current round
+        Round turn = giveMeTheRound(currentView);
+//      assert(turn != NULL);
+
+        // we will use the connectedLocations funciton in GameView.c to find
+        // all the possible locations which Dracula can visit
+        return connectedLocations(currentView->gameView, numLocations, there, player, turn,$
 }
