@@ -8,7 +8,7 @@
 #include "Game.h"
 #include "GameView.h"
 #include "Map.h"
-#include "DraView.h"
+#include "DracView.h"
 // #include "Map.h" ... if you decide to use the Map ADT
      
 struct dracView {
@@ -105,11 +105,9 @@ LocationID *whereCanIgo(DracView currentView, int *numLocations, int road, int s
 
 	// need to find out the current location of Dracula
 	LocationID here = whereIs(currentView, PLAYER_DRACULA);
-	assert(here != NULL);
 
 	// need to find out the current round
 	Round turn = giveMeTheRound(currentView);
-	assert(turn != NULL);
 
 	// dracula cannot move by rail hence
 	int rail = 0;
@@ -130,11 +128,9 @@ LocationID *whereCanTheyGo(DracView currentView, int *numLocations,
 
 	// need to find out the current location of the player
 	LocationID there = whereIs (currentView, player);
-	assert(there != NULL);
 
 	// need to find out the current round
 	Round turn = giveMeTheRound(currentView);
-	assert(turn != NULL);
 
 	// we will use the connectedLocations funciton in GameView.c to find
 	// all the possible locations which Dracula can visit

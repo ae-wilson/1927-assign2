@@ -151,5 +151,5 @@ LocationID *whereCanTheyGo(HunterView currentView, int *numLocations,
 
         // we will use the connectedLocations funciton in GameView.c to find
         // all the possible locations which Dracula can visit
-        return connectedLocations(currentView->gameView, numLocations, there, player, turn,$
+        return connectedLocations(currentView->gameView, numLocations, there, player, turn, road, rail, sea);
 }
