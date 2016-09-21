@@ -261,9 +261,37 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
 
     if(player == PLAYER_DRACULA) {
         assert(from != ST_JOSEPH_AND_ST_MARYS); // Darcula is impossibly in the hospital
-
+	
+	// this accounts for locations in dracula's trail
+	int counter; // counter to scan through the trail
+	int check;	// counter to check if location is in trail
+	int IN_TRAIL;
+	LocationID *trail = currentView->trail_perPlayer[player];
+	
         while(curr != NULL){
-            if(road == TRUE){
+            // checking if location is in the trail
+            check = 0;
+            IN_TRAIL = TRUE;
+            // if the location is in the trail then it is an illegal move
+            getHistory(currentView, PLAYER_DRACULA, trail);	// get the trail
+            
+            // scan through the trail and check if the current location is in the 
+            for(counter = 0; counter < TRAIL_SIZE; counter++){
+            	if(curr->v != trail[counter]){	// check if current location is the current location in the trail
+            	   check++;
+            	}
+            }
+            // if the current location is not in each memeber of the trail then check should have incremented
+            // 6 times as there are 6 items in the trail
+            // if check == 6 (TRAIL_SIZE) then current location is not in the trail and hence 
+            // the current location is a vlid one
+            if(check == TRAIL_SIZE){
+            	IN_TRAIL = FALSE
+            } else {
+            	curr = curr->next;
+            }
+            
+            if(road == TRUE && IN_TRAIL == FALSE){
                 if(curr->type == ROAD && curr->v != ST_JOSEPH_AND_ST_MARYS) {
                     reachable[curr->v] = 1;
 					 }
