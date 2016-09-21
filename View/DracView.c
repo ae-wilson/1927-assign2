@@ -119,29 +119,20 @@ LocationID *whereCanIgo(DracView currentView, int *numLocations, int road, int s
 LocationID *whereCanTheyGo(DracView currentView, int *numLocations,
                            PlayerID player, int road, int rail, int sea)
 {
-    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    // NOT FINISHED!!
-    // STILL WORKING ON IT!!!
-  /*  assert(currentView != NULL);
-    assert(numLocations != NULL);
-    LocationID *whereCanTheyGo = malloc(sizeof(LocationID)*NUM_MAP_LOCATIONS);
-    int numOfLoc = 0;
-    whereCanTheyGo[numOfLoc] = 0;
-    int railMoves = (round + player) % 4;
-    VList curr;
-    while(curr != NULL){
-         if(road == TRUE && curr->type == ROAD){
-               whereCanTheyGo[numOfLoc++] = curr->v;
-          } else if(rail == TRUE && curr->type == RAIL){
-               // check for railmoves
-               whereCanTheyGo[numOfLoc++] = curr->v;
-          } else if(sea == TRUE && curr->type == SEA){
-               whereCanTheyGo[numOfLoc++] = curr->v;
-          }
-          curr = curr->next;
-    }
-    *numLocations = numOfLoc;
-    //return NULL;
-    return whereCanTheyGo;*/
-    return NULL;
+	assert(currentView != NULL);	// check that there is currently a player
+	assert(currentView->g != NULL);	// check that there is a map in play
+	assert(numLocations != NULL);	// check that there are locations to visit
+	assert(player >= PLAYER_LORD_GODALMING && player <= PLAYER_MINA_HARKER); 
+
+	// need to find out the current location of the player
+	LocationID there = whereIs (currentView, player);
+	assert(there != NULL);
+
+	// need to find out the current round
+	Round turn = giveMeTheRound(currentView);
+	assert(turn != NULL);
+
+	// we will use the connectedLocations funciton in GameView.c to find
+	// all the possible locations which Dracula can visit
+	return connectedLocations(currentView->gameView, numLocations, there, player, turn, road, rail, sea);
 }
