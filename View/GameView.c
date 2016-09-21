@@ -89,7 +89,7 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
         char location[2];    //get the abbrev of locations
         location[0] = pastPlays[i+1];
         location[1] = pastPlays[i+2];
-        location[2] = '\0';
+        //location[2] = '\0'; //compiler doesnt like this
 
         frontInsert(gameView->trail_perPlayer, player, location); //update the trail_perPlayer
 
