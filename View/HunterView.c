@@ -117,8 +117,13 @@ LocationID *whereCanIgo(HunterView currentView, int *numLocations,
     LocationID from = getLocation(currentView->gameView, player);
     Round round = getRound(currentView->gameView);
 
-    LocationID *moves = connectedLocations(currentView->gameView, numLocations, from, player, round, road, rail, sea);
-    return moves;
+    if(from != UNKNOWN_LOCATION) {
+        LocationID *moves = connectedLocations(currentView->gameView, numLocations, from, player, round, road, rail, sea);
+        return moves;
+    } else {
+        *numLocations = 0;
+        return NULL;
+    }
 }
 
 // What are the specified player's next possible moves

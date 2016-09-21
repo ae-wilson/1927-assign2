@@ -90,7 +90,7 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
         free(location);
 
         //player = one of the hunters
-        if(player < PLAYER_DRACULA) {
+        if(player != PLAYER_DRACULA) {
             //if HP = 0 in last turn, HP = 9 in this turn 
             if(gameView->health[player] == 0) {
                 gameView->health[player] = GAME_START_HUNTER_LIFE_POINTS;
@@ -139,7 +139,7 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
                 if(idToType(gameView->trail_perPlayer[player][0]) == SEA) {
                     gameView->health[player] -= LIFE_LOSS_SEA;
                 } 
-            } else if(gameView->trail_perPlayer[player][0] >= SEA_UNKNOWN) {
+            } else if(gameView->trail_perPlayer[player][0] == SEA_UNKNOWN) {
                 gameView->health[player] -= LIFE_LOSS_SEA;
             } else if(gameView->trail_perPlayer[player][0] >= DOUBLE_BACK_1 && gameView->trail_perPlayer[player][0] <= DOUBLE_BACK_5) {
                 int steps = gameView->trail_perPlayer[player][0] - DOUBLE_BACK_1 + 1;
@@ -206,6 +206,13 @@ int getScore(GameView currentView)
 // Get the current health points for a given player
 int getHealth(GameView currentView, PlayerID player)
 {
+    assert(player >= PLAYER_LORD_GODALMING && player <= PLAYER_DRACULA);
+    if(player != PLAYER_DRACULA) {
+        assert(currentView->health[player] >= 0 && currentView->health[player] <= GAME_START_HUNTER_LIFE_POINTS);
+    } else {    
+        assert(currentView->health[player] >= 0);
+    }
+
     return currentView->health[player];
 }
 
