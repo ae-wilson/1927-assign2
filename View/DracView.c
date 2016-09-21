@@ -1,11 +1,14 @@
 // DracView.c ... DracView ADT implementation
 
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 #include "Globals.h"
 #include "Game.h"
 #include "GameView.h"
-#include "DracView.h"
+#include "Map.h"
+#include "DraView.h"
 // #include "Map.h" ... if you decide to use the Map ADT
      
 struct dracView {
@@ -92,29 +95,24 @@ void giveMeTheTrail(DracView currentView, PlayerID player,
 // What are my (Dracula's) possible next moves (locations)
 LocationID *whereCanIgo(DracView currentView, int *numLocations, int road, int sea)
 {
-    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    // NOT FINISHED YET!!!!
-    // STILL WORKING ON IT!!!!
-    /*assert(currentView != NULL);
-    assert(numLocations != NULL);
-    
-    LocationID *whereCanIgo = malloc(sizeof(LocationID) * NUM_MAP_LOCATIONS);
-    int numOfLoc = 0;
-    whereCanIgo[numOfLoc] = 0;
-    VList curr;
-    while(curr != NULL){
-         if(road == TRUE && curr->type == ROAD){
-              assert(curr != ST_JOSEPH_AND_ST_MARYS);
-              whereCanIgo[numOfLoc++] = curr->v;
-         } else if(sea == TRUE && curr->type == SEA){
-              // lose 2 blood points
-              whereCanIgo[numOfLoc++] = curr->v;
-         }
-         curr = curr->next;
-    }
-    *numLocations = numOfLoc;
-    return whereCanIgo;*/
-    return NULL;
+	assert(currentView != NULL);	// check that there is currently a player
+	assert(currentView->g != NULL);	// check that there is a map in play
+	assert(numLocations != NULL);	// check that there are locations to visit
+
+	// need to find out the current location of Dracula
+	LocationID here = whereIs(currentView, PLAYER_DRACULA);
+	assert(here != NULL);
+
+	// need to find out the current round
+	Round turn = giveMeTheRound(currentView);
+	assert(turn != NULL);
+
+	// dracula cannot move by rail hence
+	int rail = 0;
+
+	// we will use the connectedLocations funciton in GameView.c to find
+	// all the possible locations which Dracula can visit
+	return connectedLocations(currentView->gameView, numLocations, here, PLAYER_DRACULA, turn, road, rail, sea);
 }
 
 // What are the specified player's next possible moves
