@@ -56,12 +56,12 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
     assert(gameView->lastTurnHealth != NULL);
     gameView->health = malloc(NUM_PLAYERS * sizeof(int));
     assert(gameView->health != NULL);
-    gameView->trail_perPlayer = malloc(NUM_PLAYERS * sizeof(int*));
+    gameView->trail_perPlayer = malloc(NUM_PLAYERS * sizeof(LocationID *));
     assert(gameView->trail_perPlayer != NULL);
  
     int i, j = 0;
     for(i = 0; i < NUM_PLAYERS; i++) {
-        gameView->trail_perPlayer[i] = malloc(GAME_START_SCORE * sizeof(int));
+        gameView->trail_perPlayer[i] = malloc(GAME_START_SCORE * sizeof(LocationID));
         assert(gameView->trail_perPlayer[i] != NULL);
 
         for(j = 0; j < GAME_START_SCORE; j++){
@@ -136,7 +136,7 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
             //player = Dracula
             if(pastPlays[i+5] == 'V') gameView->score -= SCORE_LOSS_VAMPIRE_MATURES;
            
-            gameView->lastTurnHealth[player] = gameView->health[i];
+            gameView->lastTurnHealth[player] = gameView->health[player];
 
             if(gameView->trail_perPlayer[player][0] == CASTLE_DRACULA || gameView->trail_perPlayer[player][0] == TELEPORT) {
                 //gain HP as Dracula is in his castle
