@@ -9,6 +9,8 @@
 #include "GameView.h"
 #include "Map.h"
 #include "DracView.h"
+
+
      
 struct dracView {
     Map g;
