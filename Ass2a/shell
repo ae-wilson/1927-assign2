@@ -8,11 +8,15 @@ echo =====   Compiling the Programs   =====
 make
 echo ""
 
-echo =====   Test ***View   =====
+echo =====   Testing GameView   =====
 ./testGameView
 echo ""
+
+echo =====   Testing HunterView =====
 ./testHunterView
 echo ""
+
+echo =====   Testing DracView   =====
 ./testDracView
 echo ""
 
