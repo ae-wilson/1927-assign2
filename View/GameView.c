@@ -86,12 +86,13 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
         gameView->turn++;  //increase the turn number
         PlayerID player = whichPlayer(pastPlays[i]);  //find out which player
 
-        char location[2];    //get the abbrev of locations
+        char *location = malloc(4 * sizeof(char));    //get the abbrev of locations
+        assert(location != NULL);
         location[0] = pastPlays[i+1];
         location[1] = pastPlays[i+2];
-        location[2] = '\0';
 
         frontInsert(gameView->trail_perPlayer, player, location); //update the trail_perPlayer
+        free(location);
 
         //player = one of the hunters
         if(player != PLAYER_DRACULA) {
