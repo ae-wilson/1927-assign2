@@ -70,10 +70,12 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
         }
     }
 
-    //Update the state of the game
+
+    //Initial turn number and game score
     gameView->turn = 1;
     gameView->score = GAME_START_SCORE;    
 
+    //The health of players at the beginning of the game
     for(i = 0; i < PLAYER_DRACULA; i++) {
         gameView->lastTurnHealth[i] = GAME_START_HUNTER_LIFE_POINTS;
         gameView->health[i] = GAME_START_HUNTER_LIFE_POINTS;
@@ -81,23 +83,26 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
     gameView->lastTurnHealth[i] = GAME_START_BLOOD_POINTS;
     gameView->health[i] = GAME_START_BLOOD_POINTS;    
 
-    int interval = 8;
-
+    //Scanning through the pastPlays string to obtain necessary information
+    int interval = 8; 
     for(i = 0; i < strlen(pastPlays); i += interval) {
-        gameView->turn++;  //increase the turn number
-        PlayerID player = whichPlayer(pastPlays[i]);  //find out which player
+        gameView->turn++;                             //increase the turn number by 1
+        PlayerID player = whichPlayer(pastPlays[i]);  //find out which player 
 
-        char *location = malloc(4 * sizeof(char));    //get the abbrev of locations
+        char *location = malloc(4 * sizeof(char));    //get the abbreviation of locations
         assert(location != NULL);
         location[0] = pastPlays[i+1];
         location[1] = pastPlays[i+2];
 
-        frontInsert(gameView->trail_perPlayer, player, location); //update the trail_perPlayer
+        //Update the trail of the current player(Hunter)
+        frontInsert(gameView->trail_perPlayer, player, location); 
         free(location);
 
-        //player = one of the hunters
+        //player = one of the Hunters
         if(player != PLAYER_DRACULA) {
             for(j = i + 3; j < i + interval - 1; j++) {
+
+                //restore to 9 HP if the hunter was killed by Dracula in last turn
                 if(gameView->health[player] == 0) {
                     gameView->lastTurnHealth[player] = 0;
                     gameView->health[player] = GAME_START_HUNTER_LIFE_POINTS;
@@ -105,18 +110,18 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
                     gameView->lastTurnHealth[player] = gameView->health[player];
                 }
 
-                if(pastPlays[j] == '.') break;  //no encounters            
-
-                //trigger the trap(s)
+                if(pastPlays[j] == '.') break;  //No more encounters --> exit the loop by break       
+                
+                //Trigger the trap(s)
                 if(pastPlays[j] == 'T') {
                     gameView->health[player] -= LIFE_LOSS_TRAP_ENCOUNTER;
-                } else if(pastPlays[j] == 'D') {
-                    //confront Dracula
+                } else if(pastPlays[j] == 'D') {         
+                    //Confront Dracula 
                     gameView->health[player] -= LIFE_LOSS_DRACULA_ENCOUNTER;
                     gameView->health[PLAYER_DRACULA] -= LIFE_LOSS_HUNTER_ENCOUNTER;   
                 }
 
-                //no more actions when HP gets to ZERO
+                //No more actions when HP becomes ZERO --> HP = 0 and reduce the game score
                 if(gameView->health[player] <= 0) {
                     gameView->health[player] = 0;
                     gameView->score -= SCORE_LOSS_HUNTER_HOSPITAL;
@@ -124,29 +129,29 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
                 } 
             }
             
+            //When hunter stays at the same location as the previous turn (when HP is not zero)
             if((gameView->trail_perPlayer[player][0] == gameView->trail_perPlayer[player][1]) && 
                 gameView->health[player] > 0) {
                 //take rest or research at the same location
                 gameView->health[player] += LIFE_GAIN_REST;
 
-                //make sure Hunter HP does not exceed the limit (HP: 9)
+                //make sure Hunter HP does not exceed the limit (i.e HP <= 9)
                 if(gameView->health[player] > GAME_START_HUNTER_LIFE_POINTS) {
                     gameView->health[player] = GAME_START_HUNTER_LIFE_POINTS;
                 }
             }        
         } else {
             //player = Dracula
+             
+            //Immuture vampires become mature and game score will be reduced
             if(pastPlays[i+5] == 'V') gameView->score -= SCORE_LOSS_VAMPIRE_MATURES;
            
             gameView->lastTurnHealth[player] = gameView->health[player];
 
             if(gameView->trail_perPlayer[player][0] == CASTLE_DRACULA || gameView->trail_perPlayer[player][0] == TELEPORT) {
-                //gain HP as Dracula is in his castle
-
-                gameView->health[player] += LIFE_GAIN_CASTLE_DRACULA;
+                gameView->health[player] += LIFE_GAIN_CASTLE_DRACULA;    //gain HP as Dracula is in his castle
             } else if(gameView->trail_perPlayer[player][0] >= MIN_MAP_LOCATION && gameView->trail_perPlayer[player][0] <= MAX_MAP_LOCATION) {
                 //lose 2 HP when Dracula is at the sea
-
                 if(idToType(gameView->trail_perPlayer[player][0]) == SEA) {
                     gameView->health[player] -= LIFE_LOSS_SEA;
                 } 
@@ -167,12 +172,13 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
                 } 
             }
 
-            //score -= 1 when Dracula ends his turn
+            //score - 1 when Dracula finishes his turn
             gameView->score -= SCORE_LOSS_DRACULA_TURN;    
         }
     }  
 
-    //if player = hunter and got killed by Dracula in last round
+    //if current player is hunter and got killed by Dracula in last round
+    //his health will be restored and can leave the hospital
     PlayerID currentPlayer = getCurrentPlayer(gameView);
     if(currentPlayer != PLAYER_DRACULA) {
         if(gameView->health[currentPlayer] == 0) {
@@ -237,7 +243,8 @@ int getHealth(GameView currentView, PlayerID player)
         return currentView->health[player];
     } 
         
-    return currentView->health[player];
+    assert(currentView->health[PLAYER_DRACULA] > 0);
+    return currentView->health[PLAYER_DRACULA];
 }
 
 // Get the current location id of a given player
@@ -247,8 +254,10 @@ LocationID getLocation(GameView currentView, PlayerID player)
     assert(player >= PLAYER_LORD_GODALMING && player <= PLAYER_DRACULA);
 
     if(player == PLAYER_DRACULA) {
+        //Dracula is teleported to his castle
         if(currentView->trail_perPlayer[player][0] == TELEPORT) return CASTLE_DRACULA;
     } else {
+        //if the current health or the health in last turn is ZERO, then the hunter must be in the hospital
         if(currentView->health[player] == 0) return ST_JOSEPH_AND_ST_MARYS;
         if(currentView->lastTurnHealth[player] == 0) return ST_JOSEPH_AND_ST_MARYS;   
     }
@@ -280,27 +289,31 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
     assert(numLocations != NULL);   // check that there is a location to visit
     assert(player >= PLAYER_LORD_GODALMING && player <= PLAYER_DRACULA);
     
+    //If the location of the player is unknown (for example, HIDE, CITY_UNKNOWN, ......)
     if(from < MIN_MAP_LOCATION || from > MAX_MAP_LOCATION) {
         *numLocations = 0;
         return NULL;
     } 
     
 
-    // initialise the size of connected locations
+    // An array which tells which location can be reached (depends on the 3 parameters - road, rail, sea)
     int *reachable = malloc(NUM_MAP_LOCATIONS * sizeof(int));
     assert(reachable != NULL);
 
+    //Initialise the array
     int i;
     for(i = 0; i < NUM_MAP_LOCATIONS; i++) reachable[i] = 0;
     reachable[from] = 1;
     
     VList curr = currentView->g->connections[from]; 
 
+    //Start looking for connected cities and seas 
+    // **  this function won't take Dracula's trail into account (as required) **
     if(player == PLAYER_DRACULA) {
         assert(from != ST_JOSEPH_AND_ST_MARYS); // Darcula is impossibly in the hospital
 
         while(curr != NULL){
-            if(road == TRUE){
+            if(road == TRUE) {
                 if(curr->type == ROAD && curr->v != ST_JOSEPH_AND_ST_MARYS) {
                     reachable[curr->v] = 1;
 					 }
@@ -311,8 +324,8 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
             curr = curr->next;
         }
     } else {    
-        // player is a hunter
 
+        // player is a hunter
         while(curr != NULL) {
             if(road == TRUE) {
                 if(curr->type == ROAD) reachable[curr->v] = 1;                
@@ -323,7 +336,7 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
             curr = curr->next;
         }   
 
-        // Rail moves: The maximum distance that can be moved via rail is determined by the sum$
+        // Rail moves: The maximum distance that can be moved via rail
         int railMoves = (round + player) % 4;
         if(rail == TRUE && railMoves == 1) {
             curr = currentView->g->connections[from];
@@ -332,7 +345,8 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
                 curr = curr->next;
             }
         } else if(rail == TRUE && railMoves > 1) {
-            railConnection(currentView, reachable, from, railMoves);
+            //looking for more rail connected cities according to how many railMoves can be made in this round
+            railConnection(currentView, reachable, from, railMoves); 
         }
 
     }
@@ -347,8 +361,8 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
     }
 
     free(reachable); 
-    assert(length >= 1);
-    *numLocations = length;
+    assert(length >= 1);     //as it is possible to stay at the same place
+    *numLocations = length;  //length of the connLocations array
    
     return connLocations;
 }
@@ -385,9 +399,9 @@ static PlayerID whichPlayer(char c) {
     return id;
 }
 
-// Inserts previous location to trail accordingly 
-static void frontInsert(LocationID **trail_perPlayer, PlayerID player, char *location) {
 
+// Inserts current location to trail accordingly 
+static void frontInsert(LocationID **trail_perPlayer, PlayerID player, char *location) {
     assert(trail_perPlayer != NULL);
     assert(trail_perPlayer[player] != NULL);
     assert(location != NULL);    
@@ -435,14 +449,16 @@ static void frontInsert(LocationID **trail_perPlayer, PlayerID player, char *loc
     trail_perPlayer[player][j] = id;
 }
 
+// Finds the rail connected cities according to the railMoves
 static void railConnection(GameView gameView, int *reachable, LocationID from, int railMoves) {
     validGameView(gameView);
     assert(reachable != NULL);
     assert(from >= MIN_MAP_LOCATION && from <= MAX_MAP_LOCATION);
-    assert(railMoves == 2 || railMoves == 3);
+    assert(railMoves > 1);
 
+    // how many rounds it needs to be checked
     int roundCheck = railMoves - 1;
-    Queue *qList = malloc(roundCheck * sizeof(Queue *));
+    Queue *qList = malloc(roundCheck * sizeof(Queue *)); //An array of Queue ADT
     assert(qList != NULL);
 
     int i;
@@ -450,7 +466,8 @@ static void railConnection(GameView gameView, int *reachable, LocationID from, i
         qList[i] = newQueue();
         assert(qList[i] != NULL);
     }
-    
+   
+    //Finds all the adjacent cities connected by rails in the current city
     VList curr = gameView->g->connections[from];
     while(curr != NULL) {
         if(curr->type == RAIL) {
@@ -461,13 +478,14 @@ static void railConnection(GameView gameView, int *reachable, LocationID from, i
         curr = curr->next;
     }    
 
-    
+    //tells which locations have been visited
     int *visited = malloc(NUM_MAP_LOCATIONS * sizeof(int));
     assert(visited != NULL);
     for(i = 0; i < NUM_MAP_LOCATIONS; i++) visited[i] = 0;
     visited[from] = 1; 
 
-    
+   
+    //BFS x 1 or BFS x 2 (depending on the number of railMoves can be made)
     for(i = 0; i < roundCheck; i++) {
         while(!emptyQueue(qList[i])) {
             LocationID s = leaveQueue(qList[i]);
@@ -496,7 +514,6 @@ static void railConnection(GameView gameView, int *reachable, LocationID from, i
 
     free(qList);
     free(visited);
-    
 }
 
 
