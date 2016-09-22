@@ -11,11 +11,10 @@
 #include "Map.h" 
      
 struct hunterView {
-    Map g;
-    GameView gameView;
-    int turn;
-    int score;
-    int player;
+    Map g;                       //The Map
+    GameView gameView;           //the gameView
+    int turn;                    //turn number
+    int score;                   //game score           
     int *lastTurnHealth;
     int *health;
     LocationID **trail_perPlayer; // stores trail for each player in 2D array 
