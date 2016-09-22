@@ -86,10 +86,10 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
         gameView->turn++;  //increase the turn number
         PlayerID player = whichPlayer(pastPlays[i]);  //find out which player
 
-        char location[2];    //get the abbrev of locations
+        char location[3];    //get the abbrev of locations
         location[0] = pastPlays[i+1];
         location[1] = pastPlays[i+2];
-        //location[2] = '\0'; //compiler doesnt like this
+        location[2] = '\0'; 
 
         frontInsert(gameView->trail_perPlayer, player, location); //update the trail_perPlayer
 
