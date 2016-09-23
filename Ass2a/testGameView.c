@@ -8,9 +8,9 @@
 
 static void UnitTest1(void);
 static void UnitTest2(void);
+static void UnitTest3(void);
 
-int main()
-{
+int main(int argc, char *argv[]) {
     int i;
     GameView gv;
     
@@ -113,9 +113,10 @@ int main()
     printf("passed\n");
     disposeGameView(gv);
 
-    printf("\n=====   More Tests   =====\n\n");
+    printf("\n=====   More Tests   =====\n");
     UnitTest1();    
     UnitTest2();
+    UnitTest3();
 
     return 0;
 }
@@ -123,8 +124,6 @@ int main()
 
 static void UnitTest1(void) {
     printf("#####   Unit Test 1   #####\n");   
-    printf("pastPlays string: GPA.... SVI.... HCD....\n"); 
-    printf("PlayerMessages: Tom, John, Milly\n");
 
     PlayerMessage messages1[] = {"Tom", "John", "Milly"};
     GameView gameView = newGameView("GPA.... SVI.... HCD....", messages1);
@@ -212,8 +211,6 @@ static void UnitTest1(void) {
 
 static void UnitTest2(void) {
     printf("*****   Unit Test 2   *****\n");
-    printf("pastPlays string: GCD.... SSR.... HST.... MMN.... DSO.V.. GGA.... SAL.... HBU.... MED.... DVAT... GCN.... SBA.... HAM.... MNS.... DSJT... GBS.... SM    S.... HBU.... MAM.... DZAT... GIO.... SAL.... HCO.... MNS.... DC?T... GAT.... SMS.... HAM.... MAO.... DC?T... GAT.... SMS.... HAM.... MAO.... DC?T.V. GAT.... SMR.... H    CO.... MMS.... DC?T.M. GAT.... SMR.... HCO.... MMS.... DC?T.M. GAT.... SPA....\n"); 
-    printf("PlayerMessages: Hello x 47\n\n");   
   
     PlayerMessage *messages1 = malloc(47 * sizeof(PlayerMessage));
     assert(messages1 != NULL);
@@ -307,5 +304,62 @@ static void UnitTest2(void) {
 
 
     disposeGameView(gameView);
+    printf("passed!\n\n");
+}
+
+static void UnitTest3(void) {
+    printf("#####   Unit Test 3   #####\n");
+    printf("-----   Tests on death of hunter   -----\n");
+
+    PlayerMessage messages1[] = {"Hi", "My name is ?????"};
+    GameView gameView = newGameView("GMN.... SCD.... HMA.... MST.... DLV.V.. GLO.... SKL.... HSR.... MZU.... DSWT... GSWTD.. SBD.... HBO.... MMR.... DC?T... GSW.... SVI.... HBB.... MMS.... DC?T... GIR.... SPR.... HAO.... MCG.... DS?.... GLVV... SBR.... HIR.... MTS.... DS?.... GLV.... SBR.... HIR.... MTS.... DAO.... GIR.... SPR.... HAO.... MIO.... DS?.... GAO.... SVI.... HMS.... MAS.... DNAT.M. GMS.... SVE.... HTS.... MAS.... DC?T.M. GTS.... SAS.... HIO.... MAS.... DC?T... GIO.... SAS.... HAS.... MAS.... DC?T... GIO.... SAS.... HAS.... MAS.... DTOT... GAS.... SAS.... HAS.... MAS.... DC?.V.. GAS.... SAS.... HAS.... MAS.... DZUT.M. GVE.... SVE.... HVE.... MVE.... DC?T.M. GGO.... SGO.... HGO.... MGO.... DC?T.M. GTS.... STS.... HTS.... MTS.... DC?T.M. GTS.... STS.... HTS.... MTS.... DPAT.M. GIO.... SIO.... HIO.... MIO.... DC?T.V. GIO.... SIO.... HIO.... MIO.... DC?T.M. GAS.... SAS.... HAS.... MAS.... DC?T.M. GIO.... SIO.... HIO.... MIO.... DC?T.M. GTS.... STS.... HTS.... MTS.... DC?T.M. GTS.... STS.... HTS.... MTS.... DTOT.M. GIO.... SIO.... HIO.... MIO.... DC?T.M. GTS.... STS.... HTS.... MTS.... DC?.VM. GMS.... SMS.... HMS.... MMS.... DC?T.M. GAO.... SAO.... HAO.... MAO.... DC?T.M. GMS.... SMS.... HMS.... MMS.... DC?T.M. GMS.... SMS.... HMS.... MMS.... DPAT.M. GTS.... STS.... HTS.... MTS.... DCFT.M. GGO.... SGO.... HGO.... MGO.... DNAT.V. GMR.... SMR.... HMR.... MMR.... DBOT.M. GCFT... SPAT... HCF.... MGE.... DSRT.M. GTO.... SNAT... HPA.... MPA.... DBAT.M. GTO.... SNA.... HPA.... MPA.... DTOT... GSRT... SLE.... HBOT... MLE.... DMRT... GSN.... SBU.... HSR.... MBU.... DZUT... GBB.... SST.... HBAT... MCO.... DST.V.. GNA.... SNU.... HMS.... MHA.... DC?T... GCF.... SPR.... HMRT... MLI.... DC?T... GCF.... SPR.... HMR.... MLI.... DPAT.M. GGE.... SVI.... HMI.... MFR.... DCFT... GZUT... SMU.... HVE.... MSTV... DNAT... GST.... SST.... HMU.... MST.... DBOT... GGE.... SGE.... HMI.... MGE.... DSRT.M. GCFT... SPAT... HGO.... MPA.... DC?T.M. GCF.... SPA.... HGO.... MPA.... DTOT... GBOT... SMR.... HMR.... MNAT... DMRT... GSRT... SZU.... HTOT... MCF.... DZUT... GSR.... SMU.... HCF.... MMRT... DSTT... GTO.... SZA.... HPA.... MMI.... DC?.V.. GMR.... SVI.... HNA.... MMU.... DC?T.M. GMR.... SVI.... HNA.... MMU.... DPAT... GGE.... SPR.... HLE.... MVI.... DCFT... GGE.... SVI.... HPAT... MVE.... DC?T.M. GSTT... SBD.... HGE.... MGO.... DC?T... GZU.... SSZ.... HCFT... MMR.... DC?T.V. GMU.... SZA.... HMR.... MMI.... DC?T.M. GMU.... SZA.... HMR.... MMI.... DTOT... GVI.... SBD.... HMI.... MMU.... DMRT... GVE.... SVI.... HMI.... MMI.... DZUT.M. GGO.... SMU.... HMRT... MGE.... DSTT.M. GTS.... SZUT... HTOT... MPA.... DCOT.M. GRO.... SSTT... HCF.... MLE.... DBU.VM. GRO.... SST.... HCF.... MLE.... DPAT... GFL.... SPATD.. HNA.... MBUV... DC?T... GGO.... SPA.... HLE.... MCOT... DC?T... GVE.... SNATD..", messages1);
+   
+    assert(gameView != NULL);
+    assert(getRound(gameView) == 69);
+    assert(getScore(gameView) == GAME_START_SCORE - 69 - 3 * SCORE_LOSS_VAMPIRE_MATURES - SCORE_LOSS_HUNTER_HOSPITAL);
+    assert(getCurrentPlayer(gameView) == PLAYER_VAN_HELSING);
+    assert(getHealth(gameView, PLAYER_DR_SEWARD) == 0);
+    assert(getLocation(gameView, PLAYER_DR_SEWARD) == ST_JOSEPH_AND_ST_MARYS);
+    disposeGameView(gameView);
     printf("passed!\n");
+
+    printf("$$$$$   Tests on the revival of hunter (i.e: restore to full health in hospital after death)   $$$$$\n");
+    gameView = newGameView("GMN.... SCD.... HMA.... MST.... DLV.V.. GLO.... SKL.... HSR.... MZU.... DSWT... GSWTD.. SBD.... HBO.... MMR.... DC?T... GSW.... SVI.... HBB.... MMS.... DC?T... GIR.... SPR.... HAO.... MCG.... DS?.... GLVV... SBR.... HIR.... MTS.... DS?.... GLV.... SBR.... HIR.... MTS.... DAO.... GIR.... SPR.... HAO.... MIO.... DS?.... GAO.... SVI.... HMS.... MAS.... DNAT.M. GMS.... SVE.... HTS.... MAS.... DC?T.M. GTS.... SAS.... HIO.... MAS.... DC?T... GIO.... SAS.... HAS.... MAS.... DC?T... GIO.... SAS.... HAS.... MAS.... DTOT... GAS.... SAS.... HAS.... MAS.... DC?.V.. GAS.... SAS.... HAS.... MAS.... DZUT.M. GVE.... SVE.... HVE.... MVE.... DC?T.M. GGO.... SGO.... HGO.... MGO.... DC?T.M. GTS.... STS.... HTS.... MTS.... DC?T.M. GTS.... STS.... HTS.... MTS.... DPAT.M. GIO.... SIO.... HIO.... MIO.... DC?T.V. GIO.... SIO.... HIO.... MIO.... DC?T.M. GAS.... SAS.... HAS.... MAS.... DC?T.M. GIO.... SIO.... HIO.... MIO.... DC?T.M. GTS.... STS.... HTS.... MTS.... DC?T.M. GTS.... STS.... HTS.... MTS.... DTOT.M. GIO.... SIO.... HIO.... MIO.... DC?T.M. GTS.... STS.... HTS.... MTS.... DC?.VM. GMS.... SMS.... HMS.... MMS.... DC?T.M. GAO.... SAO.... HAO.... MAO.... DC?T.M. GMS.... SMS.... HMS.... MMS.... DC?T.M. GMS.... SMS.... HMS.... MMS.... DPAT.M. GTS.... STS.... HTS.... MTS.... DCFT.M. GGO.... SGO.... HGO.... MGO.... DNAT.V. GMR.... SMR.... HMR.... MMR.... DBOT.M. GCFT... SPAT... HCF.... MGE.... DSRT.M. GTO.... SNAT... HPA.... MPA.... DBAT.M. GTO.... SNA.... HPA.... MPA.... DTOT... GSRT... SLE.... HBOT... MLE.... DMRT... GSN.... SBU.... HSR.... MBU.... DZUT... GBB.... SST.... HBAT... MCO.... DST.V.. GNA.... SNU.... HMS.... MHA.... DC?T... GCF.... SPR.... HMRT... MLI.... DC?T... GCF.... SPR.... HMR.... MLI.... DPAT.M. GGE.... SVI.... HMI.... MFR.... DCFT... GZUT... SMU.... HVE.... MSTV... DNAT... GST.... SST.... HMU.... MST.... DBOT... GGE.... SGE.... HMI.... MGE.... DSRT.M. GCFT... SPAT... HGO.... MPA.... DC?T.M. GCF.... SPA.... HGO.... MPA.... DTOT... GBOT... SMR.... HMR.... MNAT... DMRT... GSRT... SZU.... HTOT... MCF.... DZUT... GSR.... SMU.... HCF.... MMRT... DSTT... GTO.... SZA.... HPA.... MMI.... DC?.V.. GMR.... SVI.... HNA.... MMU.... DC?T.M. GMR.... SVI.... HNA.... MMU.... DPAT... GGE.... SPR.... HLE.... MVI.... DCFT... GGE.... SVI.... HPAT... MVE.... DC?T.M. GSTT... SBD.... HGE.... MGO.... DC?T... GZU.... SSZ.... HCFT... MMR.... DC?T.V. GMU.... SZA.... HMR.... MMI.... DC?T.M. GMU.... SZA.... HMR.... MMI.... DTOT... GVI.... SBD.... HMI.... MMU.... DMRT... GVE.... SVI.... HMI.... MMI.... DZUT.M. GGO.... SMU.... HMRT... MGE.... DSTT.M. GTS.... SZUT... HTOT... MPA.... DCOT.M. GRO.... SSTT... HCF.... MLE.... DBU.VM. GRO.... SST.... HCF.... MLE.... DPAT... GFL.... SPATD.. HNA.... MBUV... DC?T... GGO.... SPA.... HLE.... MCOT... DNAT... GVE.... SNATD.. HBU.... MHA.... DC?T... GMU....", messages1); 
+    
+    assert(gameView != NULL);
+    assert(getHealth(gameView, PLAYER_DR_SEWARD) == GAME_START_HUNTER_LIFE_POINTS);
+    assert(getLocation(gameView, PLAYER_DR_SEWARD) == ST_JOSEPH_AND_ST_MARYS);
+    
+    int numLocations;
+    LocationID *possibleMoves = connectedLocations(gameView, &numLocations, ST_JOSEPH_AND_ST_MARYS, PLAYER_DR_SEWARD, 70, 0, 1, 1);
+    assert(possibleMoves != NULL);
+    assert(numLocations == 1);
+    assert(possibleMoves[0] == ST_JOSEPH_AND_ST_MARYS);
+    free(possibleMoves);
+
+    possibleMoves = connectedLocations(gameView, &numLocations, ST_JOSEPH_AND_ST_MARYS, PLAYER_DR_SEWARD, 70, 1, 1, 1);
+    assert(possibleMoves != NULL);
+    assert(numLocations == 5);
+    int *reachable = malloc(NUM_MAP_LOCATIONS * sizeof(int));
+    assert(reachable != NULL);
+
+    int i, j = 0;
+    for(i = 0; i < NUM_MAP_LOCATIONS; i++) reachable[i] = 0;
+
+    for(i = 0; i < numLocations; i++) {
+        j = possibleMoves[i];
+
+        reachable[j] = 1;
+    }
+    
+    assert(reachable[ST_JOSEPH_AND_ST_MARYS] == 1);
+    assert(reachable[ZAGREB] == 1);
+    assert(reachable[SARAJEVO] == 1);
+    assert(reachable[SZEGED] == 1);
+    assert(reachable[BELGRADE] == 1);
+    assert(reachable[CASTLE_DRACULA] == 0); // Test for no connections !
+    assert(reachable[BERLIN] == 0);         // Test for no connections !
+
+    disposeGameView(gameView);
+    printf("passed!\n\n");
 }
