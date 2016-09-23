@@ -278,6 +278,7 @@ LocationID *whereCanIgo(HunterView currentView, int *numLocations,
 {
     validHunterView(currentView);
     PlayerID player = getCurrentPlayer(currentView->gameView);
+    assert(player != PLAYER_DRACULA);
     LocationID from = getLocation(currentView->gameView, player);
     Round round = getRound(currentView->gameView);
 
@@ -315,11 +316,11 @@ LocationID *whereCanTheyGo(HunterView currentView, int *numLocations,
     
 
     // need to find out the current round
-    Round turn = giveMeTheRound(currentView);
+    Round round = giveMeTheRound(currentView);
 
     // we will use the connectedLocations funciton in GameView.c to find
     // all the possible locations which Dracula can visit
-    return connectedLocations(currentView->gameView, numLocations, there, player, turn, road, rail, sea);
+    return connectedLocations(currentView->gameView, numLocations, there, player, round, road, rail, sea);
 }
 
 
