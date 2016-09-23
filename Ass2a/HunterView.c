@@ -305,12 +305,14 @@ LocationID *whereCanTheyGo(HunterView currentView, int *numLocations,
     // if the player is Dracula and he is teleported to his castle
     if(player == PLAYER_DRACULA) {
         if(there == TELEPORT) there = CASTLE_DRACULA;
-        if(there < MIN_MAP_LOCATION || there > MAX_MAP_LOCATION) {
-            // Dracula location is unknown (i.e: not a precise location 0...70)
-            *numLocations = 0;
-            return NULL;
-        }
-    }    
+    }
+    
+    if(there < MIN_MAP_LOCATION || there > MAX_MAP_LOCATION) {
+        // Dracula location is unknown (i.e: not a precise location 0...70)
+        *numLocations = 0;
+        return NULL;
+    }
+    
 
     // need to find out the current round
     Round turn = giveMeTheRound(currentView);
