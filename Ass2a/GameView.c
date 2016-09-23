@@ -91,6 +91,7 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
 
         char *location = malloc(4 * sizeof(char));    //get the abbreviation of locations
         assert(location != NULL);
+        for(j = 0; j < 4; j++) location[j] = 0;
         location[0] = pastPlays[i+1];
         location[1] = pastPlays[i+2];
 

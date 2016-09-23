@@ -1,3 +1,7 @@
+// Assignment 2a --- The View --- GameView
+// Name: Amelia Wilson, John Cawood, Thomas Castagnone, Weng Chon Fan
+// Tutorial Group: T09A 
+// Tutor: Addo Wondo
 // HunterView.c ... HunterView ADT implementation
 
 #include <stdio.h>
@@ -11,14 +15,14 @@
 #include "Map.h" 
      
 struct hunterView {
-    Map g;                       //The Map
-    GameView gameView;           //the gameView
-    int turn;                    //turn number
-    int score;                   //game score           
-    int *lastTurnHealth;
-    int *health;
+    Map g;                        // The Map
+    GameView gameView;            // the gameView
+    int turn;                     // turn number
+    int score;                    // game score           
+    int *lastTurnHealth;          // players' health in last turn
+    int *health;                  // players' health in this turn
     LocationID **trail_perPlayer; // stores trail for each player in 2D array 
-    PlayerMessage *ms;
+    PlayerMessage *ms;            // Player Messages
 };
 
 //Private Functions
@@ -33,6 +37,7 @@ HunterView newHunterView(char *pastPlays, PlayerMessage messages[])
     assert(pastPlays != NULL);
     assert(messages != NULL);
 
+    // Initialise the HunterView ADT
     HunterView hunterView = malloc(sizeof(struct hunterView));
     assert(hunterView != NULL);
     hunterView->g = newMap();
@@ -57,7 +62,7 @@ HunterView newHunterView(char *pastPlays, PlayerMessage messages[])
     }
 
 
-    //Update the state of the game
+    //Initial turn number, score and health point
     hunterView->turn = 1;
     hunterView->score = GAME_START_SCORE;    
 
@@ -68,14 +73,15 @@ HunterView newHunterView(char *pastPlays, PlayerMessage messages[])
     hunterView->lastTurnHealth[i] = GAME_START_BLOOD_POINTS;
     hunterView->health[i] = GAME_START_BLOOD_POINTS;    
 
-
+    //Obtain useful data from pastPlays string
     int interval = 8;
     for(i = 0; i < strlen(pastPlays); i += interval) {
-        hunterView->turn++;  //increase the turn number
+        hunterView->turn++;                           //increase the turn number
         PlayerID player = whichPlayer(pastPlays[i]);  //find out which player
 
         char *location = malloc(4 * sizeof(char));    //get the abbrev of locations
         assert(location != NULL);
+        for(j = 0; j < 4; j++) location[j] = 0;
         location[0] = pastPlays[i+1];
         location[1] = pastPlays[i+2];
 
@@ -92,18 +98,18 @@ HunterView newHunterView(char *pastPlays, PlayerMessage messages[])
                     hunterView->lastTurnHealth[player] = hunterView->health[player];
                 }
 
-                if(pastPlays[j] == '.') break;  //no encounters            
+                if(pastPlays[j] == '.') break;  //No encounters in tbis turn         
 
-                //trigger the trap(s)
+                //Trigger the trap(s)
                 if(pastPlays[j] == 'T') {
                     hunterView->health[player] -= LIFE_LOSS_TRAP_ENCOUNTER;
                 } else if(pastPlays[j] == 'D') {
-                    //confront Dracula
+                    //Confront Dracula
                     hunterView->health[player] -= LIFE_LOSS_DRACULA_ENCOUNTER;
                     hunterView->health[PLAYER_DRACULA] -= LIFE_LOSS_HUNTER_ENCOUNTER;   
                 }
 
-                //no more actions when HP gets to ZERO
+                //No actions can be taken when HP gets to ZERO --> reduce the game score
                 if(hunterView->health[player] <= 0) {
                     hunterView->health[player] = 0;
                     hunterView->score -= SCORE_LOSS_HUNTER_HOSPITAL;
@@ -125,22 +131,25 @@ HunterView newHunterView(char *pastPlays, PlayerMessage messages[])
             //player = Dracula
             if(pastPlays[i+5] == 'V') hunterView->score -= SCORE_LOSS_VAMPIRE_MATURES;
            
+            //update the health
             hunterView->lastTurnHealth[player] = hunterView->health[player];
 
             if(hunterView->trail_perPlayer[player][0] == CASTLE_DRACULA || hunterView->trail_perPlayer[player][0] == TELEPORT) {
-                //gain HP as Dracula is in his castle
 
+                //gain HP as Dracula is in his castle
                 hunterView->health[player] += LIFE_GAIN_CASTLE_DRACULA;
             } else if(hunterView->trail_perPlayer[player][0] >= MIN_MAP_LOCATION && hunterView->trail_perPlayer[player][0] <= MAX_MAP_LOCATION) {
+               
                 //lose 2 HP when Dracula is at the sea
-
                 if(idToType(hunterView->trail_perPlayer[player][0]) == SEA) {
                     hunterView->health[player] -= LIFE_LOSS_SEA;
                 } 
             } else if(hunterView->trail_perPlayer[player][0] == SEA_UNKNOWN) {
                 hunterView->health[player] -= LIFE_LOSS_SEA;
             } else if(hunterView->trail_perPlayer[player][0] >= DOUBLE_BACK_1 && hunterView->trail_perPlayer[player][0] <= DOUBLE_BACK_5) {
-                int steps = hunterView->trail_perPlayer[player][0] - DOUBLE_BACK_1 + 1;               
+               
+                //figure out whether Dracula has used double back to sea 
+                int steps = hunterView->trail_perPlayer[player][0] - DOUBLE_BACK_1 + 1;          
 
                 if(hunterView->trail_perPlayer[player][steps] == HIDE) steps += 1;
                 assert(steps < GAME_START_SCORE);
@@ -156,11 +165,22 @@ HunterView newHunterView(char *pastPlays, PlayerMessage messages[])
                 } 
             }
 
-            //score -= 1 when Dracula ends his turn
+            //score - 1 when Dracula finishes his turn
             hunterView->score -= SCORE_LOSS_DRACULA_TURN;    
         }
     } 
 
+    //The current Player got killed by Dracula in last turn, and this turn the hunter's health 
+    //is restored to full health, and allowed to leave the hospital
+    PlayerID currentPlayer = getCurrentPlayer(hunterView->gameView);
+    if(currentPlayer != PLAYER_DRACULA) {
+        if(hunterView->health[currentPlayer] == 0) {
+            hunterView->lastTurnHealth[currentPlayer] = 0;
+            hunterView->health[currentPlayer] = GAME_START_HUNTER_LIFE_POINTS;
+        }
+    }
+
+    //Copy the player messages in the HunterView ADT
     if(hunterView->turn > 1) {
         hunterView->ms = malloc((hunterView->turn - 1) * sizeof(PlayerMessage));
         assert(hunterView->ms != NULL);
@@ -266,6 +286,7 @@ LocationID *whereCanIgo(HunterView currentView, int *numLocations,
         LocationID *moves = connectedLocations(currentView->gameView, numLocations, from, player, round, road, rail, sea);
         return moves;
     } else {
+        // No moves made by current Player (at the beginning of the game)
         *numLocations = 0;
         return NULL;
     }
@@ -282,6 +303,16 @@ LocationID *whereCanTheyGo(HunterView currentView, int *numLocations,
     // need to find out the current location of the player
     LocationID there = whereIs(currentView, player);
 
+    // if the player is Dracula and he is teleported to his castle
+    if(player == PLAYER_DRACULA) {
+        if(there == TELEPORT) there = CASTLE_DRACULA;
+        if(there < MIN_MAP_LOCATION || there > MAX_MAP_LOCATION) {
+            // Dracula location is unknown (i.e: not a precise location 0...70)
+            *numLocations = 0;
+            return NULL;
+        }
+    }    
+
     // need to find out the current round
     Round turn = giveMeTheRound(currentView);
 
@@ -289,7 +320,6 @@ LocationID *whereCanTheyGo(HunterView currentView, int *numLocations,
     // all the possible locations which Dracula can visit
     return connectedLocations(currentView->gameView, numLocations, there, player, turn, road, rail, sea);
 }
-
 
 
 // *** Private Functions ***
@@ -302,7 +332,7 @@ static void validHunterView(HunterView hunterView) {
     assert(hunterView->lastTurnHealth != NULL);
     assert(hunterView->health != NULL);
     assert(hunterView->trail_perPlayer != NULL);
-    if(hunterView->turn != 1) assert(hunterView->ms != NULL);
+    if(hunterView->turn > 1) assert(hunterView->ms != NULL);
 
     int i;
     for(i = 0; i < NUM_PLAYERS; i++) assert(hunterView->trail_perPlayer[i] != NULL);
