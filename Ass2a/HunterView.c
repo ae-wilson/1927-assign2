@@ -152,7 +152,6 @@ HunterView newHunterView(char *pastPlays, PlayerMessage messages[])
                 int steps = hunterView->trail_perPlayer[player][0] - DOUBLE_BACK_1 + 1;          
 
                 if(hunterView->trail_perPlayer[player][steps] == HIDE) steps += 1;
-                assert(steps < GAME_START_SCORE);
 
                 if(hunterView->trail_perPlayer[player][steps] >= MIN_MAP_LOCATION && 
                    hunterView->trail_perPlayer[player][steps] <= MAX_MAP_LOCATION) 

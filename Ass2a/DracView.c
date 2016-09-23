@@ -123,16 +123,19 @@ DracView newDracView(char *pastPlays, PlayerMessage messages[])
 
                     // Disarm the trap and lose HP
                     assert(dracView->numTrap[currLoc] > 0);
+                    assert(idToType(currLoc) != SEA);
                     dracView->health[player] -= LIFE_LOSS_TRAP_ENCOUNTER; 
                     dracView->numTrap[currLoc] -= 1;
                 } else if(pastPlays[j] == 'V') {
  
                     // Discover an immature vampire and kill it
+                    assert(idToType(currLoc) != SEA);
                     assert(dracView->numIV[currLoc] == 1);
                     dracView->numIV[currLoc] -= 1;
                 } else if(pastPlays[j] == 'D') {
 
                     // Confront Dracula
+                    assert(idToType(currLoc) != SEA);
                     dracView->health[player] -= LIFE_LOSS_DRACULA_ENCOUNTER;
                     dracView->health[PLAYER_DRACULA] -= LIFE_LOSS_HUNTER_ENCOUNTER;   
                 }
@@ -218,6 +221,7 @@ DracView newDracView(char *pastPlays, PlayerMessage messages[])
                 // The Trap malfunctions
                 LocationID leaveTrail = dracView->trail_perPlayer[player][6];
                 assert(leaveTrail >= MIN_MAP_LOCATION && leaveTrail <= MAX_MAP_LOCATION);
+                assert(idToType(leaveTrail) != SEA);
                 assert(dracView->numTrap[leaveTrail] > 0);
                 dracView->numTrap[leaveTrail] -= 1;
             }
@@ -389,13 +393,14 @@ LocationID *whereCanIgo(DracView currentView, int *numLocations, int road, int s
     // get Dracula's trail
     LocationID *dracTrail = malloc(TRAIL_SIZE * sizeof(LocationID));
     assert(dracTrail != NULL);
-    giveMeTheTrail(currentView, PLAYER_DRACULA, dracTrail);
+    getHistory(currentView->gameView, PLAYER_DRACULA, dracTrail);
 
     int counterA = 0;
     int counterB = 0;
     while(counterA < *numLocations) {
         counterB = 0;
-        while(counterB < TRAIL_SIZE && counterA < *numLocations) {
+        //Trail size - 1 as the last place in Dracula's trail is removed first
+        while(counterB < TRAIL_SIZE - 1 && counterA < *numLocations) {   
             if(connLoc[counterA] == dracTrail[counterB] && connLoc[counterA] != here) {
                 // if the location is in Dracula's trail and not where he currently is
                 removeLocation(numLocations, connLoc, connLoc[counterA], counterA);

@@ -162,7 +162,6 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
                 int steps = gameView->trail_perPlayer[player][0] - DOUBLE_BACK_1 + 1;               
 
                 if(gameView->trail_perPlayer[player][steps] == HIDE) steps += 1;
-                assert(steps < GAME_START_SCORE);
 
                 if(gameView->trail_perPlayer[player][steps] >= MIN_MAP_LOCATION && gameView->trail_perPlayer[player][steps] <= MAX_MAP_LOCATION) {
                     if(idToType(gameView->trail_perPlayer[player][steps]) == SEA) {
