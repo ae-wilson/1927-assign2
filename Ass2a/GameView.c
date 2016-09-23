@@ -317,7 +317,9 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
                 if(curr->type == ROAD && curr->v != ST_JOSEPH_AND_ST_MARYS) {
                     reachable[curr->v] = 1;
 					 }
-            } else if(sea == TRUE) {
+            } 
+            
+            if(sea == TRUE) {
 				    if(curr->type == BOAT) reachable[curr->v] = 1;            
             }
                 
@@ -329,7 +331,9 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
         while(curr != NULL) {
             if(road == TRUE) {
                 if(curr->type == ROAD) reachable[curr->v] = 1;                
-            } else if(sea == TRUE) {
+            }
+  
+            if(sea == TRUE) {
                 if(curr->type == BOAT) reachable[curr->v] = 1;
             }
 

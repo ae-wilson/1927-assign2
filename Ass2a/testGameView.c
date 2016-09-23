@@ -281,7 +281,7 @@ static void UnitTest2(void) {
 
     printf("More Tests for connectedLocations --- road moves + 3 x rail moves + sea moves\n");
     possibleMoves = connectedLocations(gameView, &numLocations, GENOA, PLAYER_MINA_HARKER, 0, 1, 1, 1);
-    assert(numLocations == 11);
+    assert(numLocations == 10);
     reachable = malloc(NUM_MAP_LOCATIONS * sizeof(int));
     assert(reachable != NULL);
     for(i = 0; i < NUM_MAP_LOCATIONS; i++) reachable[i] = 0;    
@@ -289,18 +289,18 @@ static void UnitTest2(void) {
         j = possibleMoves[i];
         reachable[j] = 1;
     } 
-    assert(reachable[PARIS] == 1);
-    assert(reachable[BRUSSELS] == 1);
-    assert(reachable[LE_HAVRE] == 1);
-    assert(reachable[NANTES] == 1);
-    assert(reachable[BORDEAUX] == 1);
-    assert(reachable[CLERMONT_FERRAND] == 1);
+    assert(reachable[GENOA] == 1);
     assert(reachable[MARSEILLES] == 1);
+    assert(reachable[FLORENCE] == 1);
+    assert(reachable[VENICE] == 1);
+    assert(reachable[TYRRHENIAN_SEA] == 1);
+    assert(reachable[MILAN] == 1);
     assert(reachable[GENEVA] == 1);
+    assert(reachable[ROME] == 1);
     assert(reachable[STRASBOURG] == 1);
-    assert(reachable[COLOGNE] == 1);
-    assert(reachable[SARAGOSSA] == 1);
-    assert(reachable[LISBON] == 0);     // test for no connection !
+    assert(reachable[ZURICH] == 1);
+    assert(reachable[SARAGOSSA] == 0);  // test for no connections !
+    assert(reachable[LISBON] == 0);     // test for no connections !
     free(reachable);
     free(possibleMoves);
 
