@@ -20,4 +20,18 @@ echo =====   Testing DracView   =====
 ./testDracView
 echo ""
 
+echo =====   Valgrind Test   =====
+echo ""
+echo =====   valgrind ./testGameView   =====
+valgrind ./testGameView
+echo ""
+
+echo =====   valgrind ./testHunterView   =====
+valgrind ./testHunterView
+echo ""
+
+echo =====   valgrind ./testDracView   =====
+valgrind ./testDracView
+echo ""
+
 echo DONE!
