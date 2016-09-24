@@ -216,7 +216,9 @@ static void UnitTest2(void) {
         reachable[j] = 1;
     }
  
-    assert(reachable[CASTLE_DRACULA] == 1); 
+    assert(reachable[CASTLE_DRACULA] == 1);
+    free(possibleMoves);
+    free(reachable); 
     disposeDracView(dracView);
     printf("passed!\n");
 

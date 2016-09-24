@@ -212,11 +212,9 @@ static void UnitTest1(void) {
 static void UnitTest2(void) {
     printf("*****   Unit Test 2   *****\n");
   
-    PlayerMessage *messages1 = malloc(47 * sizeof(PlayerMessage));
-    assert(messages1 != NULL);
+    PlayerMessage messages1[] = {"", ""};
 
     int i, j = 0;
-    for(i = 0; i < 47; i++) strcpy(messages1[i], "Hello");
 
     GameView gameView = newGameView("GCD.... SSR.... HST.... MMN.... DSO.V.. GGA.... SAL.... HBU.... MED.... DVAT... GCN.... SBA.... HAM.... MNS.... DSJT... GBS.... SMS.... HBU.... MAM.... DZAT... GIO.... SAL.... HCO.... MNS.... DC?T... GAT.... SMS.... HAM.... MAO.... DC?T... GAT.... SMS.... HAM.... MAO.... DC?T.V. GAT.... SMR.... HCO.... MMS.... DC?T.M. GAT.... SMR.... HCO.... MMS.... DC?T.M. GAT.... SPA....", messages1);
     assert(gameView != NULL);
@@ -247,7 +245,8 @@ static void UnitTest2(void) {
     assert(trail[2] == ATHENS);
     assert(trail[3] == ATHENS);
     assert(trail[4] == ATHENS);
-    assert(trail[5] == IONIAN_SEA); 
+    assert(trail[5] == IONIAN_SEA);
+    free(trail); 
     printf("passed!\n");
 
     printf("More Tests for connectedLocations --- road moves + 2 x rail moves\n");
@@ -301,8 +300,6 @@ static void UnitTest2(void) {
     free(reachable);
     free(possibleMoves);
 
-
-
     disposeGameView(gameView);
     printf("passed!\n\n");
 }
@@ -348,7 +345,6 @@ static void UnitTest3(void) {
 
     for(i = 0; i < numLocations; i++) {
         j = possibleMoves[i];
-
         reachable[j] = 1;
     }
     
@@ -360,6 +356,8 @@ static void UnitTest3(void) {
     assert(reachable[CASTLE_DRACULA] == 0); // Test for no connections !
     assert(reachable[BERLIN] == 0);         // Test for no connections !
 
+    free(reachable);
+    free(possibleMoves);
     disposeGameView(gameView);
     printf("passed!\n\n");
 }
