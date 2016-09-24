@@ -6,8 +6,7 @@
 #include <string.h>
 #include "HunterView.h"
 
-int main()
-{
+int main(int argc, char *argv[]) {
     int i;
     HunterView hv;
     

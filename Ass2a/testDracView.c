@@ -6,8 +6,10 @@
 #include <string.h>
 #include "DracView.h"
 
-int main()
-{
+static void UnitTest1(void);
+static void UnitTest2(void);
+
+int main(int argc, char *argv[]) {
     int i;
     DracView dv;
 
@@ -107,6 +109,132 @@ int main()
     disposeDracView(dv);
 
     printf("passed\n");
+
+    printf("\n=====   More Tests on DracView ADT   =====\n\n");
+    UnitTest1();
+    UnitTest2();    
+
     return 0;
 }
 
+static void UnitTest1(void) {
+    printf("*****   Unit Test 1  *****\n");
+    printf("Number of traps and immature vampires\n");    
+
+    PlayerMessage messages1[] = {"Hello"};
+    DracView dracView = newDracView("GMN.... SCD.... HMA.... MST.... DLV.V.. GLO.... SKL.... HSR.... MZU.... DSWT... GSWTD.. SBD.... HBO.... MMR....", messages1);
+    assert(dracView != NULL);
+    assert(giveMeTheRound(dracView) == 2);
+    assert(howHealthyIs(dracView, PLAYER_LORD_GODALMING) == GAME_START_HUNTER_LIFE_POINTS - LIFE_LOSS_TRAP_ENCOUNTER - LIFE_LOSS_DRACULA_ENCOUNTER);
+    int numTraps, numVamps = 0;
+    whatsThere(dracView, LIVERPOOL, &numTraps, &numVamps);
+    assert(numTraps == 0);
+    assert(numVamps == 1);
+
+    whatsThere(dracView, SWANSEA, &numTraps, &numVamps);
+    assert(numTraps == 0);
+    assert(numVamps == 0);
+    disposeDracView(dracView);
+
+    dracView = newDracView("GMN.... SCD.... HMA.... MST.... DLV.V.. GLO.... SKL.... HSR.... MZU.... DSWT... GSWTD.. SBD.... HBO.... MMR.... DLOT... GSW.... SVI.... HBB.... MMS.... DPLT... GIR.... SPR.... HAO.... MCG.... DEC.... GLVV... SBR.... HIR.... MTS.... DNS.... GLV.... SBR.... HIR.... MTS.... DAO.... GIR.... SPR.... HAO.... MIO.... DBB.... GAO.... SVI.... HMS.... MAS.... DNAT.M. GMS.... SVE.... HTS.... MAS....", messages1);
+    assert(dracView != NULL);
+    whatsThere(dracView, LONDON, &numTraps, &numVamps);
+    assert(numTraps == 0);
+    assert(numVamps == 0);
+    whatsThere(dracView, NANTES, &numTraps, &numVamps);
+    assert(numTraps == 1);
+    assert(numVamps == 0);  
+    disposeDracView(dracView);
+
+    dracView = newDracView("GMN.... SCD.... HMA.... MST.... DLV.V.. GLO.... SKL.... HSR.... MZU.... DSWT... GSWTD.. SBD.... HBO.... MMR.... DLOT... GSW.... SVI.... HBB.... MMS.... DPLT... GIR.... SPR.... HAO.... MCG.... DEC.... GLVV... SBR.... HIR.... MTS.... DNS.... GLV.... SBR.... HIR.... MTS.... DAO.... GIR.... SPR.... HAO.... MIO.... DBB.... GAO.... SVI.... HMS.... MAS.... DNAT.M. GMS.... SVE.... HTS.... MAS.... DBOT.M. GTS.... SAS.... HIO.... MAS.... DSRT... GIO.... SAS.... HAS.... MAS.... DBAT... GIO.... SAS.... HAS.... MAS.... DTOT... GAS.... SAS.... HAS.... MAS.... DMR.V.. GAS.... SAS.... HAS.... MAS.... DZUT.M. GVE.... SVE.... HVE.... MVE.... DSTT.M. GGO.... SGO.... HGO.... MGO.... DCOT.M. GTS.... STS.... HTS.... MTS.... DBUT.M. GTS.... STS.... HTS.... MTS.... DPAT.M. GIO.... SIO.... HIO.... MIO.... DCFT.V. GIO.... SIO.... HIO.... MIO....", messages1);
+    assert(dracView != NULL);
+    whatsThere(dracView, MARSEILLES, &numTraps, &numVamps);
+    assert(numVamps == 0);
+    disposeDracView(dracView);
+
+    printf("passed!\n\n");
+}
+
+static void UnitTest2(void) {
+    printf("#####   Unit Test 2   #####\n");
+    printf("Test on whereCanIgo and whereCanTheyGo when Dracula hasn't started his turn yet\n");
+
+    PlayerMessage messages1[] = {"Turn 1", "Turn 2", "Turn 3", "Turn 4"};
+    DracView dracView = newDracView("GST.... SAO.... HZU.... MBB....", messages1);
+    assert(dracView != NULL);
+    
+    int numLocations = 1;
+    LocationID *possibleMoves = whereCanIgo(dracView, &numLocations, 1, 1);
+    assert(numLocations == 0);
+    free(possibleMoves);    
+    numLocations = 1;
+    possibleMoves = whereCanTheyGo(dracView, &numLocations, PLAYER_DRACULA, 1, 1, 1);      
+    assert(numLocations == 0);
+    free(possibleMoves);
+    disposeDracView(dracView);
+    printf("passed!\n");
+
+
+    printf("Test on whereCanIgo when Draculas's castle is in his trail\n");
+    dracView = newDracView("GPA.... SBC.... HMU.... MSR.... DCD.V.. GPA.... SBC.... HMU.... MSR.... DHIT... GPA.... SBC.... HMU.... MSR.... DD1T... GPA.... SBC.... HMU.... MSR.... DGAT... GPA.... SBC.... HMU.... MSR.... DKLT... GPA.... SBC.... HMU.... MSR....", messages1);
+    assert(dracView != NULL);
+    possibleMoves = whereCanIgo(dracView, &numLocations, 1, 1);
+    assert(possibleMoves != NULL);
+    assert(numLocations == 5);
+    int *reachable = malloc(NUM_MAP_LOCATIONS * sizeof(int));
+    assert(reachable != NULL);
+
+    int i, j = 0;
+    for(i = 0; i < NUM_MAP_LOCATIONS; i++) reachable[i] = 0;
+    for(i = 0; i < numLocations; i++) {
+        j = possibleMoves[i];
+        reachable[j] = 1;
+    }
+
+    assert(reachable[KLAUSENBURG] == 1);
+    assert(reachable[BUDAPEST] == 1);
+    assert(reachable[SZEGED] == 1);
+    assert(reachable[BELGRADE] == 1);
+    assert(reachable[BUCHAREST] == 1);
+    assert(reachable[GALATZ] == 0);          // Test for no connections !  
+    assert(reachable[CASTLE_DRACULA] == 0);  // Test for no connections !
+    free(possibleMoves);
+    free(reachable);
+    disposeDracView(dracView);
+    printf("passed!\n");
+
+    printf("Test on whereCanIgo when Dracula's castle leaves his trail   (by Hard coding)\n");
+    dracView = newDracView("GPA.... SBC.... HMU.... MSR.... DCD.V.. GPA.... SBC.... HMU.... MSR.... DHIT... GPA.... SBC.... HMU.... MSR.... DD1T... GPA.... SBC.... HMU.... MSR.... DGAT... GPA.... SBC.... HMU.... MSR.... DKLT... GPA.... SBC.... HMU.... MSR.... DGAT... GPA.... SBC.... HMU.... MSR....", messages1);
+    assert(dracView != NULL);
+    possibleMoves= whereCanIgo(dracView, &numLocations, 1, 1);
+    assert(possibleMoves != NULL);
+    reachable = malloc(NUM_MAP_LOCATIONS * sizeof(int));
+    assert(reachable != NULL);
+    for(i = 0; i < NUM_MAP_LOCATIONS; i++) reachable[i] = 0;
+    for(i = 0; i < numLocations; i++) {
+        j = possibleMoves[i];
+        reachable[j] = 1;
+    }
+ 
+    assert(reachable[CASTLE_DRACULA] == 1); 
+    disposeDracView(dracView);
+    printf("passed!\n");
+
+    printf("Test on whereIs and giveMeTheTrail\n");
+    dracView = newDracView("GPA.... SBC.... HMU.... MSR.... DCD.V.. GPA.... SBC.... HMU.... MSR.... DHIT...", messages1);
+    assert(dracView != NULL);
+    assert(whereIs(dracView, PLAYER_DRACULA) == CASTLE_DRACULA);
+   
+    LocationID *trail = malloc(TRAIL_SIZE * sizeof(LocationID));
+    assert(trail != NULL);
+    giveMeTheTrail(dracView, PLAYER_DRACULA, trail);
+    assert(trail != NULL);
+    assert(trail[0] == CASTLE_DRACULA);
+    assert(trail[1] == CASTLE_DRACULA);
+    
+    for(i = 2; i < TRAIL_SIZE - 1; i++) assert(trail[i] == UNKNOWN_LOCATION); 
+
+    free(trail);
+    disposeDracView(dracView);
+    printf("passed!\n\n");
+}

@@ -414,6 +414,7 @@ LocationID *whereCanIgo(DracView currentView, int *numLocations, int road, int s
     }
 
     assert(*numLocations >= 0);
+    free(dracTrail);
     return connLoc;
 }
 
