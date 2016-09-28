@@ -13,7 +13,25 @@
 #include "GameView.h"
 #include "HunterView.h"
 #include "Map.h" 
+#include "Queue.h"
+
+#define TRUE 1
+#define FALSE 0
      
+typedef struct vNode *VList;
+struct vNode {
+   LocationID  v;    // ALICANTE, etc
+   TransportID type; // ROAD, RAIL, BOAT
+   VList       next; // link to next node
+};
+
+struct MapRep {
+   int   nV;         // #vertices
+   int   nE;         // #edges
+   VList connections[NUM_MAP_LOCATIONS]; // array of lists
+};
+
+
 struct hunterView {
     Map g;                        // The Map
     GameView gameView;            // the gameView
