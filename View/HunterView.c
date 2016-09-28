@@ -166,12 +166,13 @@ HunterView newHunterView(char *pastPlays, PlayerMessage messages[])
         assert(hunterView->ms != NULL);
         
         int k;
-        for(k = 0; i < hunterView->turn - 1; k++) {
+        for(k = 0; k < hunterView->turn - 1; k++) {
             assert(hunterView->ms[k] != NULL);
             memset(hunterView->ms[k], 0, MESSAGE_SIZE);
             strcpy(hunterView->ms[k], messages[k]);
         }
     }
+
 
     return hunterView;
 }
