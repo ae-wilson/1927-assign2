@@ -1,0 +1,11 @@
+#!/bin/sh
+
+echo =====   Removing the old .o and executable files   =====
+make clean
+echo ""
+
+echo =====   Compiling the files   =====
+make
+echo ""
+
+echo Done!
