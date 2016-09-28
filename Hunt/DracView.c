@@ -275,7 +275,7 @@ DracView newDracView(char *pastPlays, PlayerMessage messages[])
         assert(dracView->ms != NULL);
         
         int k;
-        for(k = 0; i < dracView->turn - 1; k++) {
+        for(k = 0; k < dracView->turn - 1; k++) {
             assert(dracView->ms[k] != NULL);
             memset(dracView->ms[k], 0, MESSAGE_SIZE);
             strcpy(dracView->ms[k], messages[k]);
