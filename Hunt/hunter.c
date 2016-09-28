@@ -33,7 +33,7 @@ void decideHunterMove(HunterView gameState)
 
 // ***   Private Functions   ***
 static void idToAbbrev(LocationID move, char *abbrev) {
-    assert(move >= MIN_MAP_LOCATION && mov e<= MAX_MAP_LOCATION);
+    assert(move >= MIN_MAP_LOCATION && move <= MAX_MAP_LOCATION);
     assert(abbrev != NULL);
 
     switch(move) {
