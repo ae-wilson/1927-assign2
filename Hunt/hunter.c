@@ -15,7 +15,7 @@
 #define FALSE 0
 
 // ***  Private Functions   ***
-static void idToAbbrev(LocationID v, char *abbrev);
+static void idToAbbrev(LocationID move, char *abbrev);
 
 
 void decideHunterMove(HunterView gameState)
@@ -32,11 +32,11 @@ void decideHunterMove(HunterView gameState)
 
 
 // ***   Private Functions   ***
-static void idToAbbrev(LocationID v, char *abbrev) {
-    assert(v >= MIN_MAP_LOCATION && v <= MAX_MAP_LOCATION);
+static void idToAbbrev(LocationID move, char *abbrev) {
+    assert(move >= MIN_MAP_LOCATION && mov e<= MAX_MAP_LOCATION);
     assert(abbrev != NULL);
 
-    switch(v) {
+    switch(move) {
     case ADRIATIC_SEA:             strcpy(abbrev, "AS");  break;
     case ALICANTE:                 strcpy(abbrev, "AL");  break;
     case AMSTERDAM:                strcpy(abbrev, "AM");  break;
@@ -126,6 +126,10 @@ static void idToAbbrev(LocationID v, char *abbrev) {
 
     case ZAGREB:                   strcpy(abbrev, "ZA");  break;
     case ZURICH:                   strcpy(abbrev, "ZU");  break;
+
+    default: 
+        fprintf(stdout, "Location of hunter is unknown !!!\n");
+        exit(EXIT_FAILURE);
     }
 
 }
