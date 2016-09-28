@@ -1,10 +1,15 @@
 // dracula.c
 // Implementation of your "Fury of Dracula" Dracula AI
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <string.h>
 #include "Game.h"
 #include "DracView.h"
+#include "Places.h"
+#include "Map.h"
+#include "Queue.h"
 
 void decideDraculaMove(DracView gameState)
 {
