@@ -5,6 +5,8 @@
 #ifndef DRAC_VIEW_H
 #define DRAC_VIEW_H
 
+#include <stdio.h>
+#include <stdlib.h>
 #include "Globals.h"
 #include "Game.h"
 #include "Places.h"

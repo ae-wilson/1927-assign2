@@ -14,6 +14,7 @@
 #define TRUE 1
 #define FALSE 0
 
+
 // ***  Private Functions   ***
 static void idToAbbrev(LocationID move, char *abbrev);
 
