@@ -15,6 +15,7 @@
 #define FALSE 0
 
 // ***  Private Functions   ***
+static int isLegalMove(DracView gameState, PlayerID player, LocationID move);
 static void idToAbbrev(LocationID move, char *abbrev);
 
 
@@ -28,10 +29,64 @@ void decideDraculaMove(DracView gameState)
     idToAbbrev(2, abbrev);
     free(abbrev); //dummy
 
+    printf("%d\n", isLegalMove(gameState, PLAYER_DRACULA, CASTLE_DRACULA));
+
     registerBestPlay("CD","Mwuhahahaha");
 }
 
 // ***   Private Functions   ***
+static int isLegalMove(DracView gameState, PlayerID player, LocationID move) {
+    assert(gameState != NULL);
+    assert(player >= PLAYER_LORD_GODALMING && player <= PLAYER_DRACULA);
+    assert((move >= MIN_MAP_LOCATION && move <= MAX_MAP_LOCATION) || (move >= HIDE && move <= TELEPORT));
+    
+    LocationID *dracTrail = malloc(TRAIL_SIZE * sizeof(LocationID));
+    assert(dracTrail != NULL);
+    LocationID *dracMoves = malloc(TRAIL_SIZE * sizeof(LocationID));
+    assert(dracMoves != NULL);
+
+    int i = 0;
+    for(i = 0; i < TRAIL_SIZE; i++) {
+        dracTrail[i] = UNKNOWN_LOCATION;
+        dracMoves[i] = UNKNOWN_LOCATION;
+    }
+
+    giveMeTheTrail(gameState, player, dracTrail);
+    giveMeTheMoves(gameState, player, dracMoves);
+
+
+    int isLegal = TRUE;
+
+    if(move >= MIN_MAP_LOCATION && move <= MAX_MAP_LOCATION) {
+        for(i = 0; i < TRAIL_SIZE - 1; i++) {
+            if(dracTrail[i] == move) {
+                isLegal = FALSE;
+                break;
+            }
+        }         
+    } else if(move == HIDE) {
+        for(i = 0; i < TRAIL_SIZE - 1; i++) {
+            if(dracMoves[i] == HIDE) {
+                isLegal = FALSE;
+                break;
+            }
+        }
+    } else if(move >= DOUBLE_BACK_1 && move <= DOUBLE_BACK_5) {
+        for(i = 0; i < TRAIL_SIZE - 1; i++) {
+            if(dracMoves[i] >= DOUBLE_BACK_1 && dracMoves[i] <= DOUBLE_BACK_5) {
+                isLegal = FALSE;
+                break;
+            }
+        }
+    } 
+
+    free(dracTrail);
+    free(dracMoves);
+
+    return isLegal;
+}
+
+
 static void idToAbbrev(LocationID move, char *abbrev) {
     assert((move >= MIN_MAP_LOCATION && move <= MAX_MAP_LOCATION) || (move >= HIDE && move <= TELEPORT));
     assert(abbrev != NULL);

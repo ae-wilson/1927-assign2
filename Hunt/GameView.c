@@ -316,11 +316,11 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
             if(road == TRUE) {
                 if(curr->type == ROAD && curr->v != ST_JOSEPH_AND_ST_MARYS) {
                     reachable[curr->v] = 1;
-					 }
+                }
             } 
             
             if(sea == TRUE) {
-				    if(curr->type == BOAT) reachable[curr->v] = 1;            
+                if(curr->type == BOAT) reachable[curr->v] = 1;            
             }
                 
             curr = curr->next;

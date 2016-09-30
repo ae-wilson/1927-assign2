@@ -387,6 +387,20 @@ void giveMeTheTrail(DracView currentView, PlayerID player,
     }
 }
 
+
+// Fill the trail array with location IDs and also special moves
+// if the player is Dracula (i.e: D1, HI, TP, ......)
+// ** Similar to the function giveMeTheTrail, but this function won't 
+//    return precise locations
+void giveMeTheMoves(DracView currentView, PlayerID player, LocationID trail[TRAIL_SIZE]) {
+    assert(currentView != NULL);
+    assert(player >= PLAYER_LORD_GODALMING && player <= PLAYER_DRACULA);
+    assert(trail != NULL);
+
+    getHistory(currentView->gameView, player, trail);
+}
+
+
 //// Functions that query the map to find information about connectivity
 
 // What are my (Dracula's) possible next moves (locations)

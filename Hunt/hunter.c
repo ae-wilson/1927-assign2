@@ -3,17 +3,17 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
-#include "Game.h"
-#include "HunterView.h"
-#include "Places.h"
+#include <assert.h>
+
 #include "Map.h"
+#include "Game.h"
+#include "Places.h"
 #include "Queue.h"
+#include "HunterView.h"
 
 #define TRUE 1
 #define FALSE 0
-
 
 // ***  Private Functions   ***
 static void idToAbbrev(LocationID move, char *abbrev);
@@ -21,8 +21,12 @@ static void idToAbbrev(LocationID move, char *abbrev);
 
 void decideHunterMove(HunterView gameState)
 {
-    // TODO ...
-    // Replace the line below by something better
+    assert(gameState != NULL);
+    
+
+
+
+
     char *abbrev = malloc(4 * sizeof(char));
     assert(abbrev != NULL);
     idToAbbrev(2, abbrev);

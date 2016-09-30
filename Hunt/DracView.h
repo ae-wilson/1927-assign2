@@ -103,6 +103,14 @@ void giveMeTheTrail(DracView currentView, PlayerID player,
                         LocationID trail[TRAIL_SIZE]);
 
 
+
+// Fill the trail array with location IDs and also special moves
+// if the player is Dracula (i.e: D1, HI, TP, ......)
+// ** Similar to the function giveMeTheTrail, but this function won't 
+//    return precise locations
+void giveMeTheMoves(DracView currentView, PlayerID player, LocationID trail[TRAIL_SIZE]);
+
+
 //// Functions that query the map to find information about connectivity
 
 // whereCanIgo() returns an array of LocationIDs giving
