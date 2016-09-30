@@ -16,7 +16,10 @@
 #define FALSE 0
 
 // ***  Private Functions   ***
-static int isLegalMove(DracView gameState, PlayerID player, LocationID move);
+static int isLegalMove(DracView gameState, LocationID move);
+static int isFound(LocationID *connLoc, LocationID location, int low, int high); 
+static void sortLocIDArray(LocationID *connLoc, int low, int high);
+
 static void idToAbbrev(LocationID move, char *abbrev);
 
 
@@ -30,15 +33,16 @@ void decideDraculaMove(DracView gameState)
     idToAbbrev(2, abbrev);
     free(abbrev); //dummy
 
-    printf("%d\n", isLegalMove(gameState, PLAYER_DRACULA, CASTLE_DRACULA));
+    printf("%d\n", isLegalMove(gameState, CASTLE_DRACULA));
 
     registerBestPlay("CD","Mwuhahahaha");
 }
 
+
+
 // ***   Private Functions   ***
-static int isLegalMove(DracView gameState, PlayerID player, LocationID move) {
+static int isLegalMove(DracView gameState, LocationID move) {
     assert(gameState != NULL);
-    assert(player >= PLAYER_LORD_GODALMING && player <= PLAYER_DRACULA);
     assert((move >= MIN_MAP_LOCATION && move <= MAX_MAP_LOCATION) || (move >= HIDE && move <= TELEPORT));
     
     LocationID *dracTrail = malloc(TRAIL_SIZE * sizeof(LocationID));
@@ -52,19 +56,28 @@ static int isLegalMove(DracView gameState, PlayerID player, LocationID move) {
         dracMoves[i] = UNKNOWN_LOCATION;
     }
 
-    giveMeTheTrail(gameState, player, dracTrail);
-    giveMeTheMoves(gameState, player, dracMoves);
-
+    giveMeTheTrail(gameState, PLAYER_DRACULA, dracTrail);
+    giveMeTheMoves(gameState, PLAYER_DRACULA, dracMoves);
 
     int isLegal = TRUE;
-
     if(move >= MIN_MAP_LOCATION && move <= MAX_MAP_LOCATION) {
         for(i = 0; i < TRAIL_SIZE - 1; i++) {
             if(dracTrail[i] == move) {
                 isLegal = FALSE;
                 break;
             }
-        }         
+        } 
+       
+        if(isLegal != FALSE) { 
+            int numLocations = 0;
+            LocationID *connLoc = whereCanIgo(gameState, &numLocations, 1, 1);
+            assert(connLoc != NULL);
+            sortLocIDArray(connLoc, 0, numLocations);
+            
+            if(isFound(connLoc, move, 0, numLocations) != TRUE) isLegal = FALSE;
+
+            free(connLoc);
+        }
     } else if(move == HIDE) {
         for(i = 0; i < TRAIL_SIZE - 1; i++) {
             if(dracMoves[i] == HIDE) {
@@ -87,6 +100,57 @@ static int isLegalMove(DracView gameState, PlayerID player, LocationID move) {
     return isLegal;
 }
 
+
+static void sortLocIDArray(LocationID *connLoc, int low, int high) {
+    assert(connLoc != NULL);
+    assert(low >= MIN_MAP_LOCATION);
+    assert(high <= MAX_MAP_LOCATION);
+
+    int i, j, indexOfMin = 0;
+
+    for(i = low; i < high - 1; i++) {
+        indexOfMin = i;
+
+        for(j = i; j < high - 1; j++) {
+            if(connLoc[indexOfMin] > connLoc[j]) indexOfMin = j;
+        }
+
+        if(indexOfMin != i) {
+            LocationID temp = connLoc[i];
+            connLoc[i] = connLoc[indexOfMin];
+            connLoc[indexOfMin] = temp;
+        }
+    }
+
+    // Check whether the given array is sorted
+    for(i = low; i < high - 1; i++) assert((connLoc[i] < connLoc[i+1]) == TRUE);
+
+}
+
+// Binary search
+static int isFound(LocationID *connLoc, LocationID location, int low, int high) {
+    assert(connLoc != NULL);
+    assert(low >= MIN_MAP_LOCATION);
+    assert(high <= MAX_MAP_LOCATION);
+
+    int isFound = FALSE;
+    int midPoint = 0;
+
+    while(low <= high) {
+        midPoint = (low + high) / 2;
+
+        if(connLoc[midPoint] == location) {
+            isFound = TRUE;
+            break;
+        } else if(connLoc[midPoint] < location) {
+            low = midPoint + 1;
+        } else if(connLoc[midPoint] > location) {
+            high = midPoint - 1;
+        }
+    }
+
+    return isFound;
+}
 
 static void idToAbbrev(LocationID move, char *abbrev) {
     assert((move >= MIN_MAP_LOCATION && move <= MAX_MAP_LOCATION) || (move >= HIDE && move <= TELEPORT));
