@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <time.h>
 
 #include "Map.h"
 #include "Game.h"
@@ -25,17 +26,42 @@ static void idToAbbrev(LocationID move, char *abbrev);
 
 void decideDraculaMove(DracView gameState)
 {
-	// TODO ...
-	// Replace the line below by something better
+    assert(gameState != NULL);
+    srand(time(NULL));
 
-    char *abbrev = malloc(4 * sizeof(char));
-    assert(abbrev != NULL);
-    idToAbbrev(2, abbrev);
-    free(abbrev); //dummy
+    int i = 0;
+    LocationID move = UNKNOWN_LOCATION;
+   
+    if(giveMeTheRound(gameState) != 0) {     
+        int numLocations = 0;
+        LocationID *connLoc = whereCanIgo(gameState, &numLocations, 1, 1);
 
-    printf("%d\n", isLegalMove(gameState, CASTLE_DRACULA));
+        for(i = 0; i < numLocations; i++) {
+            if(isLegalMove(gameState, connLoc[i]) == TRUE) {
+                move = connLoc[i];
+                break;
+            }
+        }
 
-    registerBestPlay("CD","Mwuhahahaha");
+        if(move == UNKNOWN_LOCATION) {
+            if(isLegalMove(gameState, DOUBLE_BACK_1) == TRUE) {
+                move = DOUBLE_BACK_1;
+            } else if(isLegalMove(gameState, HIDE) == TRUE) {         
+                move = HIDE;
+            } else {
+                move = TELEPORT;
+            }
+        }
+
+    } else {
+        move = SOFIA;
+    }
+
+    char abbrev[2];
+    for(i = 0; i <= 2; i++) abbrev[i] = '\0';
+    idToAbbrev(move, abbrev);
+
+    registerBestPlay(abbrev,"Dracula is coming");
 }
 
 
@@ -45,10 +71,8 @@ static int isLegalMove(DracView gameState, LocationID move) {
     assert(gameState != NULL);
     assert((move >= MIN_MAP_LOCATION && move <= MAX_MAP_LOCATION) || (move >= HIDE && move <= TELEPORT));
     
-    LocationID *dracTrail = malloc(TRAIL_SIZE * sizeof(LocationID));
-    assert(dracTrail != NULL);
-    LocationID *dracMoves = malloc(TRAIL_SIZE * sizeof(LocationID));
-    assert(dracMoves != NULL);
+    LocationID dracTrail[TRAIL_SIZE];
+    LocationID dracMoves[TRAIL_SIZE];
 
     int i = 0;
     for(i = 0; i < TRAIL_SIZE; i++) {
@@ -59,45 +83,43 @@ static int isLegalMove(DracView gameState, LocationID move) {
     giveMeTheTrail(gameState, PLAYER_DRACULA, dracTrail);
     giveMeTheMoves(gameState, PLAYER_DRACULA, dracMoves);
 
-    int isLegal = TRUE;
     if(move >= MIN_MAP_LOCATION && move <= MAX_MAP_LOCATION) {
+        if(move == ST_JOSEPH_AND_ST_MARYS) {
+            return FALSE;
+        }  
+
         for(i = 0; i < TRAIL_SIZE - 1; i++) {
             if(dracTrail[i] == move) {
-                isLegal = FALSE;
-                break;
+                return FALSE;
             }
         } 
-       
-        if(isLegal != FALSE) { 
-            int numLocations = 0;
-            LocationID *connLoc = whereCanIgo(gameState, &numLocations, 1, 1);
-            assert(connLoc != NULL);
-            sortLocIDArray(connLoc, 0, numLocations);
+        
+        int numLocations = 0;
+        LocationID *connLoc = whereCanIgo(gameState, &numLocations, 1, 1);
+        assert(connLoc != NULL);
+        sortLocIDArray(connLoc, 0, numLocations);
             
-            if(isFound(connLoc, move, 0, numLocations) != TRUE) isLegal = FALSE;
-
+        if(isFound(connLoc, move, 0, numLocations) == FALSE) {
             free(connLoc);
+            return FALSE;
         }
+
+        free(connLoc);
     } else if(move == HIDE) {
         for(i = 0; i < TRAIL_SIZE - 1; i++) {
             if(dracMoves[i] == HIDE) {
-                isLegal = FALSE;
-                break;
+                return FALSE;
             }
         }
     } else if(move >= DOUBLE_BACK_1 && move <= DOUBLE_BACK_5) {
         for(i = 0; i < TRAIL_SIZE - 1; i++) {
             if(dracMoves[i] >= DOUBLE_BACK_1 && dracMoves[i] <= DOUBLE_BACK_5) {
-                isLegal = FALSE;
-                break;
+                return FALSE;
             }
         }
     } 
 
-    free(dracTrail);
-    free(dracMoves);
-
-    return isLegal;
+    return TRUE;
 }
 
 

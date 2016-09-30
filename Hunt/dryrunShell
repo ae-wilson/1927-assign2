@@ -1,5 +1,6 @@
 #!/bin/sh
 
 echo =====   Dryrun   =====
-1927 dryrun ass2b Makefile dracula.c hunter.c GameView.c GameView.h DracView.c DracView.h HunterView.c HunterView.h Queue.c Queue.h
+echo Running ......
+1927 dryrun ass2b Makefile dracula.c hunter.c GameView.c GameView.h DracView.c DracView.h HunterView.c HunterView.h Queue.c Queue.h &> log
 echo Done!
