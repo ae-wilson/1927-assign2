@@ -5,11 +5,12 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-#include "Game.h"
-#include "DracView.h"
-#include "Places.h"
+
 #include "Map.h"
+#include "Game.h"
+#include "Places.h"
 #include "Queue.h"
+#include "DracView.h"
 
 #define TRUE 1
 #define FALSE 0
