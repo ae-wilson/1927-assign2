@@ -17,15 +17,14 @@
 #define FALSE 0
 
 // ***  Private Functions   ***
-static int isLegalMove(DracView gameState, LocationID move);
+static int isLegalMove(DracView gameState, LocationID move, int road, int sea);
 static int isFound(LocationID *connLoc, LocationID location, int low, int high); 
 static void sortLocIDArray(LocationID *connLoc, int low, int high);
 
 static void idToAbbrev(LocationID move, char *abbrev);
 
 
-void decideDraculaMove(DracView gameState)
-{
+void decideDraculaMove(DracView gameState) {
     assert(gameState != NULL);
     srand(time(NULL));
 
@@ -37,16 +36,16 @@ void decideDraculaMove(DracView gameState)
         LocationID *connLoc = whereCanIgo(gameState, &numLocations, 1, 1);
 
         for(i = 0; i < numLocations; i++) {
-            if(isLegalMove(gameState, connLoc[i]) == TRUE) {
+            if(isLegalMove(gameState, connLoc[i], 1, 1) == TRUE) {
                 move = connLoc[i];
                 break;
             }
         }
 
         if(move == UNKNOWN_LOCATION) {
-            if(isLegalMove(gameState, DOUBLE_BACK_1) == TRUE) {
+            if(isLegalMove(gameState, DOUBLE_BACK_1, 1, 1) == TRUE) {
                 move = DOUBLE_BACK_1;
-            } else if(isLegalMove(gameState, HIDE) == TRUE) {         
+            } else if(isLegalMove(gameState, HIDE, 1, 1) == TRUE) {         
                 move = HIDE;
             } else {
                 move = TELEPORT;
@@ -54,9 +53,11 @@ void decideDraculaMove(DracView gameState)
         }
 
     } else {
-        move = SOFIA;
+        move = GENEVA;
     }
 
+
+    // Send next move to the game engine
     char abbrev[2];
     for(i = 0; i <= 2; i++) abbrev[i] = '\0';
     idToAbbrev(move, abbrev);
@@ -67,7 +68,7 @@ void decideDraculaMove(DracView gameState)
 
 
 // ***   Private Functions   ***
-static int isLegalMove(DracView gameState, LocationID move) {
+static int isLegalMove(DracView gameState, LocationID move, int road, int sea) {
     assert(gameState != NULL);
     assert((move >= MIN_MAP_LOCATION && move <= MAX_MAP_LOCATION) || (move >= HIDE && move <= TELEPORT));
     
@@ -95,7 +96,7 @@ static int isLegalMove(DracView gameState, LocationID move) {
         } 
         
         int numLocations = 0;
-        LocationID *connLoc = whereCanIgo(gameState, &numLocations, 1, 1);
+        LocationID *connLoc = whereCanIgo(gameState, &numLocations, road, sea);
         assert(connLoc != NULL);
         sortLocIDArray(connLoc, 0, numLocations);
             
@@ -111,12 +112,20 @@ static int isLegalMove(DracView gameState, LocationID move) {
                 return FALSE;
             }
         }
+
+        // Dracula cannot hide at sea
+        LocationID curr = whereIs(gameState, PLAYER_DRACULA);
+        if(idToType(curr) == SEA) return FALSE;
+
     } else if(move >= DOUBLE_BACK_1 && move <= DOUBLE_BACK_5) {
         for(i = 0; i < TRAIL_SIZE - 1; i++) {
             if(dracMoves[i] >= DOUBLE_BACK_1 && dracMoves[i] <= DOUBLE_BACK_5) {
                 return FALSE;
             }
         }
+
+        Round round = giveMeTheRound(gameState);
+        if(move - DOUBLE_BACK_1 >= round && round < 6) return FALSE;
     } 
 
     return TRUE;
