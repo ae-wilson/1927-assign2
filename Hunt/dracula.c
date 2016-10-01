@@ -17,8 +17,10 @@
 #define FALSE 0
 
 // ***  Private Functions   ***
-static int isLegalMove(DracView gameState, LocationID move, int road, int sea);
-static int isFound(LocationID *connLoc, LocationID location, int low, int high); 
+static int isLegalMove(DracView gameState, LocationID move);
+static int isFound(LocationID *connLoc, LocationID location, int low, int high);
+static LocationID firstMove(DracView gameState);
+static LocationID randomMove(DracView gameState); 
 static void sortLocIDArray(LocationID *connLoc, int low, int high);
 
 static void idToAbbrev(LocationID move, char *abbrev);
@@ -29,46 +31,31 @@ void decideDraculaMove(DracView gameState) {
     srand(time(NULL));
 
     int i = 0;
+    Round round = giveMeTheRound(gameState); 
     LocationID move = UNKNOWN_LOCATION;
    
-    if(giveMeTheRound(gameState) != 0) {     
-        int numLocations = 0;
-        LocationID *connLoc = whereCanIgo(gameState, &numLocations, 1, 1);
-
-        for(i = 0; i < numLocations; i++) {
-            if(isLegalMove(gameState, connLoc[i], 1, 1) == TRUE) {
-                move = connLoc[i];
-                break;
-            }
-        }
-
-        if(move == UNKNOWN_LOCATION) {
-            if(isLegalMove(gameState, DOUBLE_BACK_1, 1, 1) == TRUE) {
-                move = DOUBLE_BACK_1;
-            } else if(isLegalMove(gameState, HIDE, 1, 1) == TRUE) {         
-                move = HIDE;
-            } else {
-                move = TELEPORT;
-            }
-        }
-
+    if(round > 0) {     
+        move = randomMove(gameState);
     } else {
-        move = GENEVA;
-    }
+        // Move in first round (Round 0)
+
+        move = firstMove(gameState);
+    } 
 
 
     // Send next move to the game engine
     char abbrev[2];
     for(i = 0; i <= 2; i++) abbrev[i] = '\0';
+    if(move == UNKNOWN_LOCATION) move = TELEPORT;
     idToAbbrev(move, abbrev);
 
-    registerBestPlay(abbrev,"Dracula is coming");
+    registerBestPlay(abbrev, "Dracula is coming");
 }
 
 
 
 // ***   Private Functions   ***
-static int isLegalMove(DracView gameState, LocationID move, int road, int sea) {
+static int isLegalMove(DracView gameState, LocationID move) {
     assert(gameState != NULL);
     assert((move >= MIN_MAP_LOCATION && move <= MAX_MAP_LOCATION) || (move >= HIDE && move <= TELEPORT));
     
@@ -96,7 +83,7 @@ static int isLegalMove(DracView gameState, LocationID move, int road, int sea) {
         } 
         
         int numLocations = 0;
-        LocationID *connLoc = whereCanIgo(gameState, &numLocations, road, sea);
+        LocationID *connLoc = whereCanIgo(gameState, &numLocations, 1, 1);
         assert(connLoc != NULL);
         sortLocIDArray(connLoc, 0, numLocations);
             
@@ -131,6 +118,77 @@ static int isLegalMove(DracView gameState, LocationID move, int road, int sea) {
     return TRUE;
 }
 
+static LocationID firstMove(DracView gameState) {
+    assert(gameState != NULL);
+    
+    int i, j = 0;
+    LocationID *startLoc = malloc(4 * sizeof(LocationID));
+    assert(startLoc != NULL);
+    startLoc[0] = SALONICA;
+    startLoc[1] = CADIZ;
+    startLoc[2] = PLYMOUTH;
+    startLoc[3] = VIENNA;
+
+    LocationID firstMove = UNKNOWN_LOCATION;
+    int noHunterThere = TRUE;
+    for(i = 0; i < 4; i++) {
+        for(j = 0; j < PLAYER_DRACULA; j++) {
+            if(whereIs(gameState, j) == startLoc[i]) {
+                noHunterThere = FALSE;
+                break;
+            }
+        }
+            
+        if(noHunterThere == TRUE) {
+            firstMove = startLoc[i];
+            break;
+        }
+    }    
+
+    if(firstMove == UNKNOWN_LOCATION) firstMove = CASTLE_DRACULA;
+    free(startLoc);
+
+    return firstMove;
+} 
+
+static LocationID randomMove(DracView gameState) {
+    assert(gameState != NULL);
+
+    int numLocations = 0;
+    LocationID *connLoc = whereCanIgo(gameState, &numLocations, 1, 1);
+    assert(numLocations >= 1);
+    assert(connLoc != NULL);
+
+    LocationID move = UNKNOWN_LOCATION;
+
+    int i = 0;
+    int numLM = 0;
+    LocationID *legalMoves = malloc(NUM_MAP_LOCATIONS * sizeof(LocationID));
+    assert(legalMoves != NULL);
+
+    for(i = 0; i < NUM_MAP_LOCATIONS; i++) legalMoves[i] = UNKNOWN_LOCATION;
+
+    for(i = 0; i < numLocations; i++) {
+        if(isLegalMove(gameState, connLoc[i]) == TRUE) {
+            legalMoves[numLM++] = connLoc[i];
+        }    
+    }
+
+    if(numLM > 0) {
+        int index = rand() % numLM;
+        move = legalMoves[index];
+    } else {
+        if(isLegalMove(gameState, HIDE) == TRUE) {
+            move = HIDE;
+        } else if(isLegalMove(gameState, DOUBLE_BACK_1) == TRUE) {
+            move = DOUBLE_BACK_1;
+        } else {
+            move = TELEPORT;
+        }
+    }
+    
+    return move;
+}
 
 static void sortLocIDArray(LocationID *connLoc, int low, int high) {
     assert(connLoc != NULL);
@@ -153,7 +211,7 @@ static void sortLocIDArray(LocationID *connLoc, int low, int high) {
         }
     }
 
-    // Check whether the given array is sorted
+    // Check whether the array is sorted
     for(i = low; i < high - 1; i++) assert((connLoc[i] < connLoc[i+1]) == TRUE);
 
 }
