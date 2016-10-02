@@ -18,10 +18,11 @@
 
 // ***  Private Functions   ***
 static int isLegalMove(DracView gameState, LocationID move);
-static int isFound(LocationID *connLoc, LocationID location, int low, int high);
+static int isFound(LocationID *array, LocationID location, int low, int high);
+static int isAdjacent(DracView gameState, LocationID location);
 static LocationID firstMove(DracView gameState);
 static LocationID randomMove(DracView gameState); 
-static void sortLocIDArray(LocationID *connLoc, int low, int high);
+static void sortLocIDArray(LocationID *array, int low, int high);
 
 static void idToAbbrev(LocationID move, char *abbrev);
 
@@ -35,10 +36,10 @@ void decideDraculaMove(DracView gameState) {
     LocationID move = UNKNOWN_LOCATION;
    
     if(round > 0) {     
+        // Make a random move
         move = randomMove(gameState);
     } else {
         // Move in first round (Round 0)
-
         move = firstMove(gameState);
     } 
 
@@ -57,19 +58,26 @@ void decideDraculaMove(DracView gameState) {
 // ***   Private Functions   ***
 static int isLegalMove(DracView gameState, LocationID move) {
     assert(gameState != NULL);
-    assert((move >= MIN_MAP_LOCATION && move <= MAX_MAP_LOCATION) || (move >= HIDE && move <= TELEPORT));
+
+    if(move < MIN_MAP_LOCATION || (move > MAX_MAP_LOCATION && move < HIDE)) {
+        return FALSE;
+    }
     
-    LocationID dracTrail[TRAIL_SIZE];
     LocationID dracMoves[TRAIL_SIZE];
 
     int i = 0;
     for(i = 0; i < TRAIL_SIZE; i++) {
-        dracTrail[i] = UNKNOWN_LOCATION;
         dracMoves[i] = UNKNOWN_LOCATION;
     }
 
-    giveMeTheTrail(gameState, PLAYER_DRACULA, dracTrail);
     giveMeTheMoves(gameState, PLAYER_DRACULA, dracMoves);
+
+    for(i = 0; i < TRAIL_SIZE - 1; i++) {
+        if(dracMoves[i] == TELEPORT) {
+            dracMoves[i] = CASTLE_DRACULA;
+        }
+    }
+
 
     if(move >= MIN_MAP_LOCATION && move <= MAX_MAP_LOCATION) {
         if(move == ST_JOSEPH_AND_ST_MARYS) {
@@ -77,22 +85,31 @@ static int isLegalMove(DracView gameState, LocationID move) {
         }  
 
         for(i = 0; i < TRAIL_SIZE - 1; i++) {
-            if(dracTrail[i] == move) {
+            if(dracMoves[i] == move) {
                 return FALSE;
             }
         } 
         
-        int numLocations = 0;
-        LocationID *connLoc = whereCanIgo(gameState, &numLocations, 1, 1);
-        assert(connLoc != NULL);
-        sortLocIDArray(connLoc, 0, numLocations);
-            
-        if(isFound(connLoc, move, 0, numLocations) == FALSE) {
-            free(connLoc);
-            return FALSE;
+        if(isAdjacent(gameState, move) == FALSE) return FALSE;
+ 
+    } else if(move >= DOUBLE_BACK_1 && move <= DOUBLE_BACK_5) {
+        Round round = giveMeTheRound(gameState);
+        if(move - DOUBLE_BACK_1 >= round) return FALSE;
+
+        for(i = 0; i < TRAIL_SIZE - 1; i++) {
+            if(dracMoves[i] >= DOUBLE_BACK_1 && dracMoves[i] <= DOUBLE_BACK_5) {
+                return FALSE;
+            }
         }
 
-        free(connLoc);
+        int pos = move - DOUBLE_BACK_1;
+        if(dracMoves[pos] == HIDE) pos++;
+        if(pos > 4) return FALSE;
+        move = dracMoves[pos]; 
+                
+        if(move < MIN_MAP_LOCATION || move > MAX_MAP_LOCATION) return FALSE; 
+        if(isAdjacent(gameState, move) == FALSE) return FALSE; 
+
     } else if(move == HIDE) {
         for(i = 0; i < TRAIL_SIZE - 1; i++) {
             if(dracMoves[i] == HIDE) {
@@ -103,17 +120,7 @@ static int isLegalMove(DracView gameState, LocationID move) {
         // Dracula cannot hide at sea
         LocationID curr = whereIs(gameState, PLAYER_DRACULA);
         if(idToType(curr) == SEA) return FALSE;
-
-    } else if(move >= DOUBLE_BACK_1 && move <= DOUBLE_BACK_5) {
-        for(i = 0; i < TRAIL_SIZE - 1; i++) {
-            if(dracMoves[i] >= DOUBLE_BACK_1 && dracMoves[i] <= DOUBLE_BACK_5) {
-                return FALSE;
-            }
-        }
-
-        Round round = giveMeTheRound(gameState);
-        if(move - DOUBLE_BACK_1 >= round && round < 6) return FALSE;
-    } 
+    }
 
     return TRUE;
 }
@@ -186,12 +193,36 @@ static LocationID randomMove(DracView gameState) {
             move = TELEPORT;
         }
     }
-    
+   
+    free(connLoc);
+    free(legalMoves);
+ 
     return move;
 }
 
-static void sortLocIDArray(LocationID *connLoc, int low, int high) {
+static int isAdjacent(DracView gameState, LocationID location) {
+    assert(gameState != NULL);
+
+    if(location < MIN_MAP_LOCATION || location > MAX_MAP_LOCATION) {
+        return FALSE;
+    }
+
+    int numLocations = 0;
+    LocationID *connLoc = whereCanIgo(gameState, &numLocations, 1, 1);
     assert(connLoc != NULL);
+        
+    sortLocIDArray(connLoc, 0, numLocations);
+    if(isFound(connLoc, location, 0, numLocations) == FALSE) {
+        free(connLoc);
+        return FALSE;
+    }
+        
+    free(connLoc);
+    return TRUE;
+}
+
+static void sortLocIDArray(LocationID *array, int low, int high) {
+    assert(array != NULL);
     assert(low >= MIN_MAP_LOCATION);
     assert(high <= MAX_MAP_LOCATION);
 
@@ -201,24 +232,25 @@ static void sortLocIDArray(LocationID *connLoc, int low, int high) {
         indexOfMin = i;
 
         for(j = i; j < high - 1; j++) {
-            if(connLoc[indexOfMin] > connLoc[j]) indexOfMin = j;
+            if(array[indexOfMin] > array[j]) indexOfMin = j;
         }
 
         if(indexOfMin != i) {
-            LocationID temp = connLoc[i];
-            connLoc[i] = connLoc[indexOfMin];
-            connLoc[indexOfMin] = temp;
+            LocationID temp = array[i];
+            array[i] = array[indexOfMin];
+            array[indexOfMin] = temp;
         }
     }
 
     // Check whether the array is sorted
-    for(i = low; i < high - 1; i++) assert((connLoc[i] < connLoc[i+1]) == TRUE);
-
+    for(i = low; i < high - 1; i++) {
+        assert(array[i] < array[i+1]);
+    }
 }
 
 // Binary search
-static int isFound(LocationID *connLoc, LocationID location, int low, int high) {
-    assert(connLoc != NULL);
+static int isFound(LocationID *array, LocationID location, int low, int high) {
+    assert(array != NULL);
     assert(low >= MIN_MAP_LOCATION);
     assert(high <= MAX_MAP_LOCATION);
 
@@ -228,12 +260,12 @@ static int isFound(LocationID *connLoc, LocationID location, int low, int high) 
     while(low <= high) {
         midPoint = (low + high) / 2;
 
-        if(connLoc[midPoint] == location) {
+        if(array[midPoint] == location) {
             isFound = TRUE;
             break;
-        } else if(connLoc[midPoint] < location) {
+        } else if(array[midPoint] < location) {
             low = midPoint + 1;
-        } else if(connLoc[midPoint] > location) {
+        } else if(array[midPoint] > location) {
             high = midPoint - 1;
         }
     }
