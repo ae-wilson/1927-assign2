@@ -44,7 +44,7 @@ void decideDraculaMove(DracView gameState) {
     } 
 
 
-    // Send next move to the game engine
+    // Send the move to the game engine
     char abbrev[2];
     for(i = 0; i <= 2; i++) abbrev[i] = '\0';
     if(move == UNKNOWN_LOCATION) move = TELEPORT;
@@ -66,7 +66,6 @@ static int isLegalMove(DracView gameState, LocationID move) {
     }
     
     LocationID dracMoves[TRAIL_SIZE];
-
     int i = 0;
     for(i = 0; i < TRAIL_SIZE; i++) {
         dracMoves[i] = UNKNOWN_LOCATION;
@@ -79,6 +78,7 @@ static int isLegalMove(DracView gameState, LocationID move) {
             dracMoves[i] = CASTLE_DRACULA;
         }
     }
+
 
 
     if(move >= MIN_MAP_LOCATION && move <= MAX_MAP_LOCATION) {
