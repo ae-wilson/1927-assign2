@@ -59,7 +59,9 @@ void decideDraculaMove(DracView gameState) {
 static int isLegalMove(DracView gameState, LocationID move) {
     assert(gameState != NULL);
 
-    if(move < MIN_MAP_LOCATION || (move > MAX_MAP_LOCATION && move < HIDE)) {
+    if(move < MIN_MAP_LOCATION || (move > MAX_MAP_LOCATION && move < HIDE) ||
+       move >= TELEPORT) 
+    {
         return FALSE;
     }
     
