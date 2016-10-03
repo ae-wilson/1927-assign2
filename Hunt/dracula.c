@@ -16,6 +16,9 @@
 #define TRUE 1
 #define FALSE 0
 
+
+#define MIN_HEALTH 26
+
 // ***  Private Functions   ***
 static int isLegalMove(DracView gameState, LocationID move);
 static int isFound(LocationID *array, LocationID location, int low, int high);
@@ -43,7 +46,7 @@ void decideDraculaMove(DracView gameState) {
     if(round > 0) {     
         int health = howHealthyIs(gameState, PLAYER_DRACULA);
         
-        if(health > 26) {
+        if(health > MIN_HEALTH) {
             move = highHPMove(gameState);
         } else {
             move = lowHPMove(gameState);
