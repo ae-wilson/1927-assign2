@@ -241,6 +241,8 @@ static LocationID lowHPMove(DracView gameState) {
     LocationID curr = whereIs(gameState, PLAYER_DRACULA);
     if(curr == CASTLE_DRACULA && isLegalMove(gameState, HIDE) == TRUE) {
         return HIDE;
+    } else if(curr == CASTLE_DRACULA && isLegalMove(gameState, DOUBLE_BACK_1) == TRUE) {
+        return DOUBLE_BACK_1;
     }
 
     int length = 0;
