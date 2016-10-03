@@ -471,6 +471,16 @@ LocationID *whereCanTheyGo(DracView currentView, int *numLocations,
 }
 
 
+LocationID *adjacentLocations(DracView currentView, int *numLocations) {
+    validDracView(currentView);
+    assert(numLocations != NULL);
+
+    Round round = giveMeTheRound(currentView);
+    LocationID loc = whereIs(currentView, PLAYER_DRACULA);
+    return connectedLocations(currentView->gameView, numLocations, loc, PLAYER_DRACULA, round, 1, 0, 1);
+    
+}
+
 LocationID *shortestPath(DracView currentView, int *length, LocationID start, LocationID end, 
                          int road, int sea)
 {

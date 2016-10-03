@@ -142,6 +142,8 @@ LocationID *whereCanTheyGo(DracView currentView, int *numLocations,
                            PlayerID player, int road, int rail, int sea);
 
 
+LocationID *adjacentLocations(DracView currentView, int *numLocations);
+
 
 LocationID *shortestPath(DracView currentView, int *length, LocationID start, LocationID end, 
                          int road, int sea);
