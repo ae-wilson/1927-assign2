@@ -47,10 +47,23 @@ int main(int argc, char *argv[])
 {
 #ifdef I_AM_DRACULA
    DracView gameState;
-   char *plays = "GZA.... SED.... HZU.... MZU....";
+   char *plays = "GZA.... SED.... HZU.... MZU.... DBD.V.. GZA.... SED.... HZU.... MZU.... DHIT... GZA.... SED.... HZU.... MZU.... DD1T... GZA.... SED.... HZU.... MZU.... DVIT... GZA.... SED.... HZU.... MZU....";
    PlayerMessage msgs[3] = { "", "", "" };
    gameState = newDracView(plays,msgs);
    decideDraculaMove(gameState);
+
+   int length = 0;
+   LocationID *sPath = shortestPath(gameState, &length, VIENNA, CASTLE_DRACULA, 1, 1);
+
+   int i = 0;
+   printf("\nShortest Path from %s to %s:\n", idToName(VIENNA), idToName(CASTLE_DRACULA));
+   for(i = 0; i < length; i++) {
+       printf("%s", idToName(sPath[i]));
+       
+       if(i != length - 1) printf("-->");
+   }
+   printf("\n\n");
+
    disposeDracView(gameState);
 #else
    HunterView gameState;

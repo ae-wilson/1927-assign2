@@ -471,6 +471,130 @@ LocationID *whereCanTheyGo(DracView currentView, int *numLocations,
 }
 
 
+LocationID *shortestPath(DracView currentView, int *length, LocationID start, LocationID end, 
+                         int road, int sea)
+{
+    validDracView(currentView);
+    assert(length != NULL);
+
+    if(start < MIN_MAP_LOCATION || start > MAX_MAP_LOCATION) {
+        *length = 0;
+        return NULL;
+    }
+
+    if(end < MIN_MAP_LOCATION || end > MAX_MAP_LOCATION) {
+        *length = 0;
+        return NULL;
+    }
+
+    if(start == end) {
+        *length = 1;
+        LocationID *sPath = malloc(*length * sizeof(LocationID));
+        assert(sPath != NULL);
+        sPath[0] = start;
+        return sPath;
+    }
+
+    LocationID dracMoves[TRAIL_SIZE];
+
+    int i = 0;
+    for(i = 0; i < TRAIL_SIZE; i++) dracMoves[i] = UNKNOWN_LOCATION; 
+    giveMeTheMoves(currentView, PLAYER_DRACULA, dracMoves);
+
+    int hasDB = FALSE;
+    for(i = 0; i < TRAIL_SIZE - 1; i++) {
+        if(dracMoves[i] >= DOUBLE_BACK_1 && dracMoves[i] <= DOUBLE_BACK_5) {
+            hasDB = TRUE;
+            break;
+        }
+    } 
+
+
+    int maxCost = 99999999;
+    int dist[NUM_MAP_LOCATIONS];
+    int pred[NUM_MAP_LOCATIONS];
+    int visited[NUM_MAP_LOCATIONS];
+
+    for(i = 0; i < NUM_MAP_LOCATIONS; i++) {
+        dist[i] = maxCost;
+        pred[i] = UNKNOWN_LOCATION;
+        visited[i] = 0;
+    }
+    dist[start] = 0;
+    pred[start] = start;
+
+    if(hasDB == TRUE) {
+        for(i = 0; i < TRAIL_SIZE - 1; i++) {
+            if(dracMoves[i] >= MIN_MAP_LOCATION && dracMoves[i] <= MAX_MAP_LOCATION 
+               && dracMoves[i] != start) 
+            {
+                LocationID s = dracMoves[i];
+                visited[s] = 1;
+            } else if(dracMoves[i] == TELEPORT) {
+                visited[CASTLE_DRACULA] = 1;
+            }
+        }
+    }
+
+
+    Queue q = newQueue();
+    assert(q != NULL);
+    enterQueue(q, start);
+
+    while(!emptyQueue(q)) {
+        LocationID loc = leaveQueue(q);
+        if(visited[loc]) continue;
+
+        visited[loc] = 1;
+
+        int cost = 1;
+        int numLocations = 0;
+        LocationID *connLoc = connectedLocations(currentView->gameView, &numLocations, loc,
+                                                 PLAYER_DRACULA, giveMeTheRound(currentView),
+                                                 road, 0, sea);
+        assert(connLoc != NULL);
+
+        for(i = 0; i < numLocations; i++) {
+            if(!visited[connLoc[i]]) enterQueue(q, connLoc[i]);
+
+            if(dist[loc] + cost < dist[connLoc[i]]) { 
+                dist[connLoc[i]] = dist[loc] + cost;         
+                pred[connLoc[i]] = loc;
+            }
+        }
+        
+        free(connLoc);
+    }
+
+    disposeQueue(q);
+
+    
+    if(pred[end] == UNKNOWN_LOCATION) {
+        *length = 0;
+        return NULL;
+    } 
+
+
+    int count = 0;
+    for(i = end; i != start; i = pred[i]) {
+        count++;
+    }
+    count++;
+
+    *length = count;
+    LocationID *sPath = malloc(*length * sizeof(LocationID));
+    assert(sPath != NULL);
+
+    count--;
+    for(i = end; i != start && count > 0; i = pred[i]) {
+        sPath[count--] = i;
+    }
+    sPath[0] = start;
+
+    return sPath;
+}
+
+
 
 // *** Private Functions ***
 

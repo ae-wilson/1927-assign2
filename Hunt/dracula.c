@@ -20,13 +20,17 @@
 static int isLegalMove(DracView gameState, LocationID move);
 static int isFound(LocationID *array, LocationID location, int low, int high);
 static int isAdjacent(DracView gameState, LocationID location);
-static LocationID firstMove(DracView gameState);
-static LocationID randomMove(DracView gameState); 
-static void sortLocIDArray(LocationID *array, int low, int high);
 
+static LocationID firstMove(DracView gameState);
+static LocationID randomMove(DracView gameState);
+static LocationID lowHPMove(DracView gameState);
+static LocationID highHPMove(DracView gameState);
+ 
+static void sortLocIDArray(LocationID *array, int low, int high);
 static void idToAbbrev(LocationID move, char *abbrev);
 
 
+// Function to decide the move of Dracula
 void decideDraculaMove(DracView gameState) {
     assert(gameState != NULL);
     srand(time(NULL));
@@ -36,8 +40,14 @@ void decideDraculaMove(DracView gameState) {
     LocationID move = UNKNOWN_LOCATION;
    
     if(round > 0) {     
-        // Make a random move
-        move = randomMove(gameState);
+        int health = howHealthyIs(gameState, PLAYER_DRACULA);
+        
+        if(health > 20) {
+            move = highHPMove(gameState);
+        } else {
+            move = lowHPMove(gameState);
+        } 
+
     } else {
         // Move in first round (Round 0)
         move = firstMove(gameState);
@@ -56,6 +66,7 @@ void decideDraculaMove(DracView gameState) {
 
 
 // ***   Private Functions   ***
+// Determine whether the given move is legal or not
 static int isLegalMove(DracView gameState, LocationID move) {
     assert(gameState != NULL);
 
@@ -127,6 +138,7 @@ static int isLegalMove(DracView gameState, LocationID move) {
     return TRUE;
 }
 
+// Function to decide where Dracula goes firstly
 static LocationID firstMove(DracView gameState) {
     assert(gameState != NULL);
     
@@ -160,6 +172,7 @@ static LocationID firstMove(DracView gameState) {
     return firstMove;
 } 
 
+// Function to make a random (and legal) move
 static LocationID randomMove(DracView gameState) {
     assert(gameState != NULL);
 
@@ -202,6 +215,60 @@ static LocationID randomMove(DracView gameState) {
     return move;
 }
 
+static LocationID lowHPMove(DracView gameState) {
+    assert(gameState != NULL);
+
+    int length = 0;
+    LocationID *sPath = shortestPath(gameState, &length, whereIs(gameState, PLAYER_DRACULA), 
+                                   CASTLE_DRACULA, 1, 1);
+    if(length > 1) {
+        assert(sPath != NULL);
+        LocationID next = sPath[1];
+        
+        if(isLegalMove(gameState, next) == TRUE) {
+            return next;
+        } else {
+            LocationID dracMoves[TRAIL_SIZE];
+            giveMeTheMoves(gameState, PLAYER_DRACULA, dracMoves);
+            
+            int i = 0;
+            for(i = 0; i < TRAIL_SIZE - 1; i++) {
+                if(dracMoves[i] == TELEPORT) dracMoves[i] = CASTLE_DRACULA;
+            }           
+
+            int DBackPos = -1;
+            for(i = 0; i < TRAIL_SIZE - 1; i++) {
+                if(dracMoves[i] == next) {
+                    DBackPos = i;
+                    break;
+                }
+            }
+
+            if(DBackPos != -1) {
+                next = DOUBLE_BACK_1 + DBackPos;
+                assert(next >= DOUBLE_BACK_1 && next <= DOUBLE_BACK_5);
+                assert(isLegalMove(gameState, next) == TRUE);
+              
+                return next;
+            } else {
+                return randomMove(gameState);
+            }
+
+        } 
+    } else {
+        return randomMove(gameState);
+    }
+}
+
+
+static LocationID highHPMove(DracView gameState) {
+    assert(gameState != NULL);
+    return randomMove(gameState);
+}
+
+
+
+// Check if the given location is adjacent to Dracula's current location
 static int isAdjacent(DracView gameState, LocationID location) {
     assert(gameState != NULL);
 
@@ -223,6 +290,7 @@ static int isAdjacent(DracView gameState, LocationID location) {
     return TRUE;
 }
 
+// Selection Sort
 static void sortLocIDArray(LocationID *array, int low, int high) {
     assert(array != NULL);
     assert(low >= MIN_MAP_LOCATION);
@@ -250,7 +318,7 @@ static void sortLocIDArray(LocationID *array, int low, int high) {
     }
 }
 
-// Binary search
+// Binary search --> to find whether the given location is in the given array or not
 static int isFound(LocationID *array, LocationID location, int low, int high) {
     assert(array != NULL);
     assert(low >= MIN_MAP_LOCATION);
@@ -275,6 +343,7 @@ static int isFound(LocationID *array, LocationID location, int low, int high) {
     return isFound;
 }
 
+// Function to turn the ID of given move to a two-character string
 static void idToAbbrev(LocationID move, char *abbrev) {
     assert((move >= MIN_MAP_LOCATION && move <= MAX_MAP_LOCATION) || (move >= HIDE && move <= TELEPORT));
     assert(abbrev != NULL);
@@ -383,5 +452,4 @@ static void idToAbbrev(LocationID move, char *abbrev) {
         fprintf(stdout, "Location of hunter is unknown !!!\n");
         exit(EXIT_FAILURE);
     }
-
 }
