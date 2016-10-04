@@ -250,6 +250,7 @@ static LocationID lowHPMove(DracView gameState) {
     int length = 0;
     LocationID *sPath = shortestPath(gameState, &length, curr, CASTLE_DRACULA, 1, 1);
 
+
     if(length > 1) {
         assert(sPath != NULL);
         LocationID next = sPath[1];
@@ -276,7 +277,8 @@ static LocationID lowHPMove(DracView gameState) {
             if(DBackPos != -1) {
                 next = DOUBLE_BACK_1 + DBackPos;
                 assert(next >= DOUBLE_BACK_1 && next <= DOUBLE_BACK_5);
-              
+                assert(isLegalMove(gameState, next) == TRUE);                   
+           
                 return next;
             } else {
                 return randomMove(gameState);

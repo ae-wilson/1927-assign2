@@ -565,7 +565,11 @@ LocationID *shortestPath(DracView currentView, int *length, LocationID start, Lo
         assert(connLoc != NULL);
 
         for(i = 0; i < numLocations; i++) {
-            if(!visited[connLoc[i]]) enterQueue(q, connLoc[i]);
+            if(!visited[connLoc[i]]) {
+                enterQueue(q, connLoc[i]);
+            } else {
+                continue;
+            }
 
             if(dist[loc] + cost < dist[connLoc[i]]) { 
                 dist[connLoc[i]] = dist[loc] + cost;         
