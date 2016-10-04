@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <time.h>
 
 #include "Map.h"
 #include "Game.h"
@@ -15,28 +16,163 @@
 #define TRUE 1
 #define FALSE 0
 
+
+#define MIN_HEALTH 4
+
 // ***  Private Functions   ***
+static int isLegalMove(HunterView gameState, LocationID move);
+static int isAdjacent(HunterView gameState, LocationID location);
+static int isFound(LocationID *array, LocationID location, int low, int high);
+
+static LocationID firstMove(HunterView gameState);
+static LocationID randomMove(HunterView gameState);
+
+static void sortLocIDArray(LocationID *array, int low, int high);
 static void idToAbbrev(LocationID move, char *abbrev);
+
 
 
 void decideHunterMove(HunterView gameState)
 {
     assert(gameState != NULL);
-    
+    srand(time(NULL));  
 
+    LocationID move = UNKNOWN_LOCATION;
+    Round round = giveMeTheRound(gameState);
 
+    if(round > 0) {
+        move = randomMove(gameState);
+    } else {
+        move = firstMove(gameState);
+    }
 
+    assert(move >= MIN_MAP_LOCATION && move <= MAX_MAP_LOCATION);
 
-    char *abbrev = malloc(4 * sizeof(char));
-    assert(abbrev != NULL);
-    idToAbbrev(2, abbrev);
-    free(abbrev);           //dummy
+    char abbrev[2];
+    int i = 0;
+    for(i = 0; i < 2; i++) abbrev[i] = '\0';
+    idToAbbrev(move, abbrev);         
 
-    registerBestPlay("GE","I'm on holiday in Geneva");
+    registerBestPlay(abbrev, "Hi Dracula, your death descends HAHA");
 }
 
 
 // ***   Private Functions   ***
+static int isLegalMove(HunterView gameState, LocationID move) {
+    assert(gameState != NULL);
+
+    return isAdjacent(gameState, move);
+}
+
+static LocationID firstMove(HunterView gameState) {
+    assert(gameState != NULL);
+
+    PlayerID player = whoAmI(gameState);
+    assert(player >= PLAYER_LORD_GODALMING && player <= PLAYER_MINA_HARKER);
+
+    LocationID move = GENEVA;    
+
+    switch(player) {
+    case PLAYER_LORD_GODALMING:  move = GALATZ;        break;
+    case PLAYER_DR_SEWARD:       move = SZEGED;        break;
+    case PLAYER_VAN_HELSING:     move = BUCHAREST;     break;
+    case PLAYER_MINA_HARKER:     move = KLAUSENBURG;   break; 
+    }
+
+    return move;
+}
+
+static LocationID randomMove(HunterView gameState) {
+    assert(gameState);
+
+    int numLocations = 0;
+    LocationID *adLoc = whereCanIgo(gameState, &numLocations, 1, 1, 1);
+    assert(adLoc != NULL);   
+    assert(numLocations > 0);
+
+    int index = rand() % numLocations;
+    assert(isLegalMove(gameState, adLoc[index] == TRUE));
+ 
+    return adLoc[index];
+}
+
+
+static int isAdjacent(HunterView gameState, LocationID location) {
+    assert(gameState != NULL);
+
+    if(location < MIN_MAP_LOCATION || location > MAX_MAP_LOCATION) {
+        return FALSE;
+    }
+
+    int numLocations = 0;
+    LocationID *adLoc = whereCanIgo(gameState, &numLocations, 1, 1, 1);
+    assert(adLoc != NULL);
+    
+    sortLocIDArray(adLoc, 0, numLocations);
+    if(isFound(adLoc, location, 0, numLocations) == FALSE) {
+        free(adLoc);
+        return FALSE;
+    }
+
+    free(adLoc);
+
+    return TRUE;
+}
+
+// Selection Sort
+static void sortLocIDArray(LocationID *array, int low, int high) {
+    assert(array != NULL);
+    assert(low >= MIN_MAP_LOCATION);
+    assert(high <= MAX_MAP_LOCATION);
+
+    int i, j, indexOfMin = 0;
+
+    for(i = low; i < high - 1; i++) {
+        indexOfMin = i;
+
+        for(j = i; j < high - 1; j++) {
+            if(array[indexOfMin] > array[j]) indexOfMin = j;
+        }
+
+        if(indexOfMin != i) {
+            LocationID temp = array[i];
+            array[i] = array[indexOfMin];
+            array[indexOfMin] = temp;
+        }
+    }
+
+    // Check whether the array is sorted
+    for(i = low; i < high - 1; i++) {
+        assert(array[i] < array[i+1]);
+    }
+}
+
+// Binary search --> to find whether the given location is in the given array or not
+static int isFound(LocationID *array, LocationID location, int low, int high) {
+    assert(array != NULL);
+    assert(low >= MIN_MAP_LOCATION);
+    assert(high <= MAX_MAP_LOCATION);
+
+    int isFound = FALSE;
+    int midPoint = 0;
+
+    while(low <= high) {
+        midPoint = (low + high) / 2;
+
+        if(array[midPoint] == location) {
+            isFound = TRUE;
+            break;
+        } else if(array[midPoint] < location) {
+            low = midPoint + 1;
+        } else if(array[midPoint] > location) {
+            high = midPoint - 1;
+        }
+    }
+
+    return isFound;
+}
+
+// Convert the given move into a two-character string
 static void idToAbbrev(LocationID move, char *abbrev) {
     assert(move >= MIN_MAP_LOCATION && move <= MAX_MAP_LOCATION);
     assert(abbrev != NULL);
