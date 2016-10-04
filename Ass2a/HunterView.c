@@ -134,34 +134,38 @@ HunterView newHunterView(char *pastPlays, PlayerMessage messages[])
             //update the health
             hunterView->lastTurnHealth[player] = hunterView->health[player];
 
-            if(hunterView->trail_perPlayer[player][0] == CASTLE_DRACULA || hunterView->trail_perPlayer[player][0] == TELEPORT) {
+            // Find where Dracula is (at an unknown/known sea, his castle, on land, ......)
+            int pos = 0;
+            LocationID currLoc = hunterView->trail_perPlayer[player][0];
+            if(currLoc >= MIN_MAP_LOCATION && currLoc <= MAX_MAP_LOCATION) {
+                pos = 0;
+            } else if(currLoc >= DOUBLE_BACK_1 && currLoc <= DOUBLE_BACK_5) {
+                pos = currLoc - DOUBLE_BACK_1 + 1;
+                currLoc = hunterView->trail_perPlayer[player][pos];
 
-                //gain HP as Dracula is in his castle
-                hunterView->health[player] += LIFE_GAIN_CASTLE_DRACULA;
+                if(currLoc == HIDE) currLoc = hunterView->trail_perPlayer[player][pos+1];
+            } else if(currLoc == HIDE) {
+                pos = 1;
+                currLoc = hunterView->trail_perPlayer[player][pos];
+                
+                if(currLoc >= DOUBLE_BACK_1 && currLoc <= DOUBLE_BACK_5) {
+                   pos += currLoc - DOUBLE_BACK_1 + 1;
+                   currLoc = hunterView->trail_perPlayer[player][pos];
+                }
+            }
+
+
+            if(currLoc == TELEPORT) currLoc = CASTLE_DRACULA;
+             
+            if(currLoc == CASTLE_DRACULA) {
+                hunterView->health[player] += LIFE_GAIN_CASTLE_DRACULA;    //gain HP as Dracula is in his castle
             } else if(hunterView->trail_perPlayer[player][0] >= MIN_MAP_LOCATION && hunterView->trail_perPlayer[player][0] <= MAX_MAP_LOCATION) {
-               
                 //lose 2 HP when Dracula is at the sea
                 if(idToType(hunterView->trail_perPlayer[player][0]) == SEA) {
                     hunterView->health[player] -= LIFE_LOSS_SEA;
                 } 
             } else if(hunterView->trail_perPlayer[player][0] == SEA_UNKNOWN) {
                 hunterView->health[player] -= LIFE_LOSS_SEA;
-            } else if(hunterView->trail_perPlayer[player][0] >= DOUBLE_BACK_1 && hunterView->trail_perPlayer[player][0] <= DOUBLE_BACK_5) {
-               
-                //figure out whether Dracula has used double back to sea 
-                int steps = hunterView->trail_perPlayer[player][0] - DOUBLE_BACK_1 + 1;          
-
-                if(hunterView->trail_perPlayer[player][steps] == HIDE) steps += 1;
-
-                if(hunterView->trail_perPlayer[player][steps] >= MIN_MAP_LOCATION && 
-                   hunterView->trail_perPlayer[player][steps] <= MAX_MAP_LOCATION) 
-                {
-                    if(idToType(hunterView->trail_perPlayer[player][steps]) == SEA) {
-                        hunterView->health[player] -= LIFE_LOSS_SEA; 
-                    }
-                } else if(hunterView->trail_perPlayer[player][steps] == SEA_UNKNOWN) {
-                    hunterView->health[player] -= LIFE_LOSS_SEA;
-                } 
             }
 
             //score - 1 when Dracula finishes his turn
@@ -185,7 +189,7 @@ HunterView newHunterView(char *pastPlays, PlayerMessage messages[])
         assert(hunterView->ms != NULL);
         
         int k;
-        for(k = 0; i < hunterView->turn - 1; k++) {
+        for(k = 0; k < hunterView->turn - 1; k++) {
             assert(hunterView->ms[k] != NULL);
             memset(hunterView->ms[k], 0, MESSAGE_SIZE);
             strcpy(hunterView->ms[k], messages[k]);
