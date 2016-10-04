@@ -83,7 +83,7 @@ static LocationID firstMove(HunterView gameState) {
 }
 
 static LocationID randomMove(HunterView gameState) {
-    assert(gameState);
+    assert(gameState != NULL);
 
     int numLocations = 0;
     LocationID *adLoc = whereCanIgo(gameState, &numLocations, 1, 1, 1);
@@ -91,7 +91,7 @@ static LocationID randomMove(HunterView gameState) {
     assert(numLocations > 0);
 
     int index = rand() % numLocations;
-    assert(isLegalMove(gameState, adLoc[index] == TRUE));
+    assert(isLegalMove(gameState, adLoc[index]) == TRUE);
  
     return adLoc[index];
 }
