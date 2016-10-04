@@ -346,6 +346,115 @@ LocationID *whereCanTheyGo(HunterView currentView, int *numLocations,
 }
 
 
+LocationID *shortestPath(HunterView currentView, int *length, PlayerID player, LocationID start, LocationID end,
+                         int road, int rail, int sea) 
+{
+    validHunterView(currentView);
+    assert(length != NULL);
+
+    if(start < MIN_MAP_LOCATION || start > MAX_MAP_LOCATION) {
+        *length = 0;
+        return NULL;
+    }
+
+    if(end < MIN_MAP_LOCATION || end > MAX_MAP_LOCATION) {
+        *length = 0;
+        return NULL;
+    }
+
+    if(start == end) {
+        *length = 1;
+        LocationID *sPath = malloc(*length * sizeof(LocationID));
+        assert(sPath != NULL);
+        sPath[0] = start;
+        return sPath;
+    }
+   
+    int i = 0;
+    int cost = 1;
+    int maxCost = 99999999;
+    int dist[NUM_MAP_LOCATIONS], pred[NUM_MAP_LOCATIONS];
+    int visited[NUM_MAP_LOCATIONS];
+
+    for(i = 0; i < NUM_MAP_LOCATIONS; i++) {
+        dist[i] = maxCost;
+        pred[i] = UNKNOWN_LOCATION;
+        visited[i] = 0;
+    }
+    dist[start] = 0;
+    pred[start] = start;
+
+
+    Queue *qList = malloc(NUM_MAP_LOCATIONS * sizeof(Queue));
+    assert(qList != NULL);
+    for(i = 0; i < NUM_MAP_LOCATIONS; i++) {
+        qList[i] = newQueue();
+        assert(qList[i] != NULL);
+    }
+    enterQueue(qList[0], start);
+
+
+    Round round = giveMeTheRound(currentView);
+
+    for(i = 0; i < NUM_MAP_LOCATIONS; i++) {
+        while(!emptyQueue(qList[i])) {
+            LocationID s = leaveQueue(qList[i]);
+
+            if(visited[s]) continue;
+            visited[s] = 1;
+
+            int numLocations = 0;
+            LocationID *connLoc = connectedLocations(currentView->gameView, &numLocations,
+                                                     s, player, round + i, road, rail, sea);
+            assert(connLoc != NULL);
+             
+            int j = 0;
+            for(j = 0; j < numLocations; j++) {
+                if(i + 1 < NUM_MAP_LOCATIONS) enterQueue(qList[i+1], connLoc[j]);
+
+                if(dist[s] + cost < dist[connLoc[j]]) {
+                    dist[connLoc[j]] = dist[s] + cost;
+                    pred[connLoc[j]] = s;
+                }
+            }
+
+            free(connLoc);
+        }
+    }    
+
+    for(i = 0; i < NUM_MAP_LOCATIONS; i++) {
+        assert(qList[i] != NULL);
+        disposeQueue(qList[i]);
+    }
+    free(qList);
+
+    if(pred[end] == UNKNOWN_LOCATION) {
+        *length = 0;
+        return NULL;
+    }
+
+
+
+    int count = 0;
+    for(i = end; i != start; i = pred[i]) {
+        count++;
+    }
+    count++;
+    *length = count;
+
+    LocationID *sPath = malloc(*length * sizeof(LocationID));
+    assert(sPath != NULL);
+
+    count--;
+    for(i = end; i != start && count > 0; i = pred[i]) {
+        sPath[count--] = i;
+    } 
+    sPath[0] = start;
+
+    return sPath;
+}
+
+
 // *** Private Functions ***
 
 //check whether the given hunterView is valid

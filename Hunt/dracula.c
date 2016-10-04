@@ -254,7 +254,9 @@ static LocationID lowHPMove(DracView gameState) {
     if(length > 1) {
         assert(sPath != NULL);
         LocationID next = sPath[1];
-        
+       
+        if(numHuntersThere(gameState, next) > 0) return randomMove(gameState);
+ 
         if(isLegalMove(gameState, next) == TRUE) {
             return next;
         } else {

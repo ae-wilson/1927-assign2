@@ -528,10 +528,14 @@ LocationID *shortestPath(DracView currentView, int *length, LocationID start, Lo
     int pred[NUM_MAP_LOCATIONS];
     int visited[NUM_MAP_LOCATIONS];
 
+    int forbidden[NUM_MAP_LOCATIONS];
+
     for(i = 0; i < NUM_MAP_LOCATIONS; i++) {
         dist[i] = maxCost;
         pred[i] = UNKNOWN_LOCATION;
         visited[i] = 0;
+     
+        forbidden[i] = 0;
     }
     dist[start] = 0;
     pred[start] = start;
@@ -542,9 +546,9 @@ LocationID *shortestPath(DracView currentView, int *length, LocationID start, Lo
                && dracMoves[i] != start) 
             {
                 LocationID s = dracMoves[i];
-                visited[s] = 1;
+                forbidden[s] = 1;
             } else if(dracMoves[i] == TELEPORT) {
-                visited[CASTLE_DRACULA] = 1;
+                forbidden[CASTLE_DRACULA] = 1;
             }
         }
     }
@@ -556,6 +560,7 @@ LocationID *shortestPath(DracView currentView, int *length, LocationID start, Lo
 
     while(!emptyQueue(q)) {
         LocationID loc = leaveQueue(q);
+
         if(visited[loc]) continue;
 
         visited[loc] = 1;
@@ -568,12 +573,9 @@ LocationID *shortestPath(DracView currentView, int *length, LocationID start, Lo
         assert(connLoc != NULL);
 
         for(i = 0; i < numLocations; i++) {
-            if(!visited[connLoc[i]]) {
-                enterQueue(q, connLoc[i]);
-            } else {
-                continue;
-            }
-
+            if(forbidden[connLoc[i]]) continue;
+            if(!visited[connLoc[i]]) enterQueue(q, connLoc[i]);
+       
             if(dist[loc] + cost < dist[connLoc[i]]) { 
                 dist[connLoc[i]] = dist[loc] + cost;         
                 pred[connLoc[i]] = loc;
@@ -712,3 +714,5 @@ static void removeLocation(int *numLocations, LocationID *connLoc, LocationID v,
 
     *numLocations = *numLocations - 1;
 }
+
+

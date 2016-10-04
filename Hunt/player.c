@@ -105,9 +105,25 @@ int main(int argc, char *argv[])
    disposeDracView(gameState);
 #else
    HunterView gameState;
-   char *plays = "GZA.... SED.... HZU....";
-   PlayerMessage msgs[3] = { "", "", "" };
+   char *plays = "GZA.... SED.... HBR....";
+   PlayerMessage msgs[1850];
+   int i = 0;
+   for(i = 0; i < 1850; i++) strcpy(msgs[i], "");
+
    gameState = newHunterView(plays,msgs);
+
+   int length = 0;
+   LocationID *sPath = shortestPath(gameState, &length, PLAYER_VAN_HELSING, BERLIN, BELGRADE, 1, 1, 1);
+   
+   if(length > 0) {
+       assert(sPath != NULL);
+
+       printf("Shortes Path from Berlin to Belgrade:\n");
+   }
+
+   for(i = 0; i < length; i++) printf("%s\n", idToName(sPath[i]));
+   
+
    decideHunterMove(gameState);
    disposeHunterView(gameState);
 #endif 

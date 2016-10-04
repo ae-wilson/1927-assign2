@@ -114,4 +114,7 @@ LocationID *whereCanTheyGo(HunterView currentView, int *numLocations,
                            PlayerID player, int road, int rail, int sea);
 
 
+LocationID *shortestPath(HunterView currentView, int *length, PlayerID player, LocationID start, LocationID end,
+                         int road, int rail, int sea); 
+
 #endif
