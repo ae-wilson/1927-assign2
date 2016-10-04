@@ -236,6 +236,7 @@ static LocationID randomMove(DracView gameState) {
     return move;
 }
 
+// Determine the move when Dracula's HP is low
 static LocationID lowHPMove(DracView gameState) {
     assert(gameState != NULL);
 
@@ -287,7 +288,7 @@ static LocationID lowHPMove(DracView gameState) {
     }
 }
 
-
+// Determine the move when Dracula's HP is low
 static LocationID highHPMove(DracView gameState) {
     assert(gameState != NULL);
     return randomMove(gameState);
@@ -315,6 +316,7 @@ static int isAdjacent(DracView gameState, LocationID location) {
     return TRUE;
 }
 
+// Check how many hunters at the given location
 static int numHuntersThere(DracView gameState, LocationID loc) {
     assert(gameState != NULL);
     assert(loc >= MIN_MAP_LOCATION && loc <= MAX_MAP_LOCATION);
