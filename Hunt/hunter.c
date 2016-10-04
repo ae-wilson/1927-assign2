@@ -26,6 +26,7 @@ static int isInTrail(LocationID *trail, LocationID loc);
 
 static LocationID firstMove(HunterView gameState);
 static LocationID randomMove(HunterView gameState);
+static LocationID Rest(HunterView gameState);
 
 static void sortLocIDArray(LocationID *array, int low, int high);
 static void idToAbbrev(LocationID move, char *abbrev);
@@ -40,7 +41,13 @@ void decideHunterMove(HunterView gameState)
     Round round = giveMeTheRound(gameState);
 
     if(round > 0) {
-        move = randomMove(gameState);
+        int health = howHealthyIs(gameState, whoAmI(gameState));
+
+        if(health > MIN_HEALTH) {
+            move = randomMove(gameState);
+        } else {
+            move = Rest(gameState);
+        }
     } else {
         move = firstMove(gameState);
     }
@@ -74,10 +81,10 @@ static LocationID firstMove(HunterView gameState) {
     LocationID move = GENEVA;    
 
     switch(player) {
-    case PLAYER_LORD_GODALMING:  move = GALATZ;        break;
-    case PLAYER_DR_SEWARD:       move = SZEGED;        break;
-    case PLAYER_VAN_HELSING:     move = BUCHAREST;     break;
-    case PLAYER_MINA_HARKER:     move = KLAUSENBURG;   break; 
+    case PLAYER_LORD_GODALMING:  move = GENEVA;             break;
+    case PLAYER_DR_SEWARD:       move = PARIS;              break;
+    case PLAYER_VAN_HELSING:     move = MILAN;              break;
+    case PLAYER_MINA_HARKER:     move = CLERMONT_FERRAND;   break; 
     }
 
     return move;
@@ -113,6 +120,11 @@ static LocationID randomMove(HunterView gameState) {
     return move;
 }
 
+static LocationID Rest(HunterView gameState) {
+    assert(gameState != NULL);
+ 
+    return whereIs(gameState, whoAmI(gameState));
+}
 
 static int isAdjacent(HunterView gameState, LocationID location) {
     assert(gameState != NULL);
