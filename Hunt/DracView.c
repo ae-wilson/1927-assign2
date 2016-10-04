@@ -210,6 +210,16 @@ DracView newDracView(char *pastPlays, PlayerMessage messages[])
             LocationID currLoc = dracView->trail_perPlayer[player][0];
             assert(currLoc >= MIN_MAP_LOCATION && currLoc <= MAX_MAP_LOCATION);
 
+
+            if(pastPlays[i+5] == 'M') {
+                // The Trap malfunctions
+                LocationID leaveTrail = dracView->trail_perPlayer[player][6];
+                assert(leaveTrail >= MIN_MAP_LOCATION && leaveTrail <= MAX_MAP_LOCATION);
+                assert(idToType(leaveTrail) != SEA);
+                assert(dracView->numTrap[leaveTrail] > 0);
+                dracView->numTrap[leaveTrail] -= 1;
+            }
+
             if(pastPlays[i+3] == 'T') {
                 // Place a trap
                 assert(idToType(currLoc) != SEA);       //it is impossible for Dracula to place encounter(s) when he is at the sea
@@ -232,15 +242,8 @@ DracView newDracView(char *pastPlays, PlayerMessage messages[])
                 assert(dracView->numIV[whereIV] == 1);
                 dracView->numIV[whereIV] = 0;
                 dracView->score -= SCORE_LOSS_VAMPIRE_MATURES;
-            } else if(pastPlays[i+5] == 'M') {
-                // The Trap malfunctions
-                LocationID leaveTrail = dracView->trail_perPlayer[player][6];
-                assert(leaveTrail >= MIN_MAP_LOCATION && leaveTrail <= MAX_MAP_LOCATION);
-                assert(idToType(leaveTrail) != SEA);
-                assert(dracView->numTrap[leaveTrail] > 0);
-                dracView->numTrap[leaveTrail] -= 1;
             }
-
+ 
             //Update the health point at the end of turns
             dracView->lastTurnHealth[player] = dracView->health[player];
             if(currLoc == CASTLE_DRACULA) {
