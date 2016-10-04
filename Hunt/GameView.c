@@ -149,7 +149,30 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
            
             gameView->lastTurnHealth[player] = gameView->health[player];
 
-            if(gameView->trail_perPlayer[player][0] == CASTLE_DRACULA || gameView->trail_perPlayer[player][0] == TELEPORT) {
+            // Find where Dracula is (at an unknown/known sea, his castle, on land, ......)
+            int pos = 0;
+            LocationID currLoc = gameView->trail_perPlayer[player][0];
+            if(currLoc >= MIN_MAP_LOCATION && currLoc <= MAX_MAP_LOCATION) {
+                pos = 0;
+            } else if(currLoc >= DOUBLE_BACK_1 && currLoc <= DOUBLE_BACK_5) {
+                pos = currLoc - DOUBLE_BACK_1 + 1;
+                currLoc = gameView->trail_perPlayer[player][pos];
+
+                if(currLoc == HIDE) currLoc = gameView->trail_perPlayer[player][pos+1];
+            } else if(currLoc == HIDE) {
+                pos = 1;
+                currLoc = gameView->trail_perPlayer[player][pos];
+                
+                if(currLoc >= DOUBLE_BACK_1 && currLoc <= DOUBLE_BACK_5) {
+                   pos += currLoc - DOUBLE_BACK_1 + 1;
+                   currLoc = gameView->trail_perPlayer[player][pos];
+                }
+            }
+
+            if(currLoc == TELEPORT) currLoc = CASTLE_DRACULA;
+             
+
+            if(currLoc == CASTLE_DRACULA) {
                 gameView->health[player] += LIFE_GAIN_CASTLE_DRACULA;    //gain HP as Dracula is in his castle
             } else if(gameView->trail_perPlayer[player][0] >= MIN_MAP_LOCATION && gameView->trail_perPlayer[player][0] <= MAX_MAP_LOCATION) {
                 //lose 2 HP when Dracula is at the sea
@@ -158,20 +181,8 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
                 } 
             } else if(gameView->trail_perPlayer[player][0] == SEA_UNKNOWN) {
                 gameView->health[player] -= LIFE_LOSS_SEA;
-            } else if(gameView->trail_perPlayer[player][0] >= DOUBLE_BACK_1 && gameView->trail_perPlayer[player][0] <= DOUBLE_BACK_5) {
-                int steps = gameView->trail_perPlayer[player][0] - DOUBLE_BACK_1 + 1;               
-
-                if(gameView->trail_perPlayer[player][steps] == HIDE) steps += 1;
-
-                if(gameView->trail_perPlayer[player][steps] >= MIN_MAP_LOCATION && gameView->trail_perPlayer[player][steps] <= MAX_MAP_LOCATION) {
-                    if(idToType(gameView->trail_perPlayer[player][steps]) == SEA) {
-                        gameView->health[player] -= LIFE_LOSS_SEA; 
-                    }
-                } else if(gameView->trail_perPlayer[player][steps] == SEA_UNKNOWN) {
-                    gameView->health[player] -= LIFE_LOSS_SEA;
-                } 
             }
-
+ 
             //score - 1 when Dracula finishes his turn
             gameView->score -= SCORE_LOSS_DRACULA_TURN;    
         }

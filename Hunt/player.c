@@ -26,8 +26,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "Game.h"
+#include "Places.h"
+
 #ifdef I_AM_DRACULA
 #include "DracView.h"
 #include "dracula.h"
@@ -37,7 +40,10 @@
 #endif
 
 // moves given by registerBestPlay are this long (including terminator)
+
 #define MOVE_SIZE 3
+
+static char *location(LocationID id); 
 
 // The minimum static globals I can get away with
 static char latestPlay[MOVE_SIZE] = "";
@@ -47,22 +53,53 @@ int main(int argc, char *argv[])
 {
 #ifdef I_AM_DRACULA
    DracView gameState;
-   char *plays = "GZA.... SED.... HZU.... MZU.... DBD.V.. GZA.... SED.... HZU.... MZU.... DHIT... GZA.... SED.... HZU.... MZU.... DD1T... GZA.... SED.... HZU.... MZU.... DVIT... GZA.... SED.... HZU.... MZU....";
-   PlayerMessage msgs[3] = { "", "", "" };
+   
+   char *plays = "GGE.... SGE.... HGE.... MGE.... DSA.V.. GGE.... SGE.... HGE.... MGE.... DSOT... GGE.... SGE.... HGE.... MGE.... DBET... GGE.... SGE.... HGE.... MGE.... DSJT... GGE.... SGE.... HGE.... MGE.... DVAT... GGE.... SGE.... HGE.... MGE.... DATT... GGE.... SGE.... HGE.... MGE.... DIO..V. GGE.... SGE.... HGE.... MGE.... DSAT.M. GGE.... SGE.... HGE.... MGE.... DSOT.M. GGE.... SGE.... HGE.... MGE.... DSJT.M. GGE.... SGE.... HGE.... MGE.... DVAT.M. GGE.... SGE.... HGE.... MGE.... DATT.M. GGE.... SGE.... HGE.... MGE.... DIO.... GGE.... SGE.... HGE.... MGE.... DSA.VM. GGE.... SGE.... HGE.... MGE.... DSOT.M. GGE.... SGE.... HGE.... MGE.... DSJT.M. GGE.... SGE.... HGE.... MGE.... DVAT.M. GGE.... SGE.... HGE.... MGE.... DATT.M. GGE.... SGE.... HGE.... MGE.... DIO.... GGE.... SGE.... HGE.... MGE.... DSAT.V. GGE.... SGE.... HGE.... MGE.... DSOT.M. GGE.... SGE.... HGE.... MGE.... DVRT.M. GGE.... SGE.... HGE.... MGE.... DCNT.M. GGE.... SGE.... HGE.... MGE.... DBCT.M. GGE.... SGE.... HGE.... MGE.... DGAT... GGE.... SGE.... HGE.... MGE.... DKLT.M. GGE.... SGE.... HGE.... MGE.... DSZ.VM. GGE.... SGE.... HGE.... MGE.... DBDT.M. GGE.... SGE.... HGE.... MGE.... DZAT.M. GGE.... SGE.... HGE.... MGE.... DSJT.M. GGE.... SGE.... HGE.... MGE.... DSOT.M. GGE.... SGE.... HGE.... MGE.... DSAT.M. GGE.... SGE.... HGE.... MGE.... DVAT.V. GGE.... SGE.... HGE.... MGE.... DIO..M. GGE.... SGE.... HGE.... MGE.... DTS..M. GGE.... SGE.... HGE.... MGE.... DMS..M. GGE.... SGE.... HGE.... MGE.... DBAT.M. GGE.... SGE.... HGE.... MGE.... DTOT.M. GGE.... SGE.... HGE.... MGE.... DSRT.M. GGE.... SGE.... HGE.... MGE.... DSN.V.. GGE.... SGE.... HGE.... MGE.... DBB.... GGE.... SGE.... HGE.... MGE.... DAO.... GGE.... SGE.... HGE.... MGE.... DMS..M. GGE.... SGE.... HGE.... MGE.... DTS..M. GGE.... SGE.... HGE.... MGE.... DIO..M. GGE.... SGE.... HGE.... MGE.... DBS..V. GGE.... SGE.... HGE.... MGE.... DCNT... GGE.... SGE.... HGE.... MGE.... DGAT... GGE.... SGE.... HGE.... MGE.... DCDT... GGE.... SGE.... HGE.... MGE.... DHIT... GGE.... SGE.... HGE.... MGE.... DD1T... GGE.... SGE.... HGE.... MGE.... DKLT... GGE.... SGE.... HGE.... MGE....";
+
+   PlayerMessage msgs[1850];
+
+   int i = 0;
+   for(i = 0; i < 1850; i++) strcpy(msgs[i], "");
+
    gameState = newDracView(plays,msgs);
    decideDraculaMove(gameState);
 
-   int length = 0;
-   LocationID *sPath = shortestPath(gameState, &length, VIENNA, CASTLE_DRACULA, 1, 1);
+   printf("GameStat:\n\n");
 
-   int i = 0;
-   printf("\nShortest Path from %s to %s:\n", idToName(VIENNA), idToName(CASTLE_DRACULA));
-   for(i = 0; i < length; i++) {
-       printf("%s", idToName(sPath[i]));
-       
-       if(i != length - 1) printf("-->");
+   int player = 0;
+   for(player = 0; player <= PLAYER_DRACULA; player++) {
+      printf("Player %d:\n", player);
+      printf("Life Points: %d\n", howHealthyIs(gameState, player));
+      printf("Current Location: %s\n", location(whereIs(gameState, player)));
+        
+
+      LocationID trail[TRAIL_SIZE];
+      giveMeTheTrail(gameState, player, trail);
+
+      printf("Trail: ");
+      int j = 0;
+      for(j = 0; j < TRAIL_SIZE; j++) {
+         printf("%s", location(trail[j]));
+
+         if(j + 1 < TRAIL_SIZE) printf("--->");
+      }
+
+      printf("\n");
+      
+      LocationID moves[TRAIL_SIZE];
+      giveMeTheMoves(gameState, player, moves);
+
+      printf("Moves: ");
+      for(j = 0; j < TRAIL_SIZE; j++) { 
+         printf("%s", location(moves[j]));
+
+         if(j + 1 < TRAIL_SIZE) printf("--->");
+      }
+
+      printf("\n\n");
+      
    }
-   printf("\n\n");
+ 
 
    disposeDracView(gameState);
 #else
@@ -74,6 +111,7 @@ int main(int argc, char *argv[])
    disposeHunterView(gameState);
 #endif 
    printf("Move: %s, Message: %s\n", latestPlay, latestMessage);
+   printf("\nDummy: %s\n", location(CASTLE_DRACULA));
    return EXIT_SUCCESS;
 }
 
@@ -86,3 +124,32 @@ void registerBestPlay (char *play, PlayerMessage message) {
    strncpy(latestMessage, message, MESSAGE_SIZE);
    latestMessage[MESSAGE_SIZE-1] = '\0';
 }
+
+static char *location(LocationID id) {
+    char *loc = malloc(100 * sizeof(char));
+    assert(loc != NULL);
+
+    if(id >= MIN_MAP_LOCATION && id <= MAX_MAP_LOCATION) {
+        strcpy(loc, idToName(id));
+    } else if(id >= DOUBLE_BACK_1 && id <= DOUBLE_BACK_5) {
+        switch(id) {
+        case DOUBLE_BACK_1: strcpy(loc, "DOUBLE BACK 1"); break;
+        case DOUBLE_BACK_2: strcpy(loc, "DOUBLE BACK 2"); break;
+        case DOUBLE_BACK_3: strcpy(loc, "DOUBLE BACK 3"); break;
+        case DOUBLE_BACK_4: strcpy(loc, "DOUBLE BACK 4"); break;
+        case DOUBLE_BACK_5: strcpy(loc, "DOUBLE BACK 5"); break;
+        }
+
+    } else if(id == HIDE) {
+       strcpy(loc, "Hide");
+    } else if(id == CITY_UNKNOWN) {
+       strcpy(loc, "Unknown City");
+    } else if(id == SEA_UNKNOWN) {
+       strcpy(loc, "Unknown Sea");
+    } else if(id == UNKNOWN_LOCATION) {
+       strcpy(loc, "Unknown location");
+    }
+ 
+    return loc;
+}
+
