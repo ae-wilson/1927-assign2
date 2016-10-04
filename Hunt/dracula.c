@@ -356,7 +356,7 @@ static void sortLocIDArray(LocationID *array, int low, int high) {
 
     // Check whether the array is sorted
     for(i = low; i < high - 1; i++) {
-        assert(array[i] < array[i+1]);
+        assert(array[i] <= array[i+1]);
     }
 }
 

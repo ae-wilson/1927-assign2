@@ -16,13 +16,13 @@
 #define TRUE 1
 #define FALSE 0
 
-
 #define MIN_HEALTH 4
 
 // ***  Private Functions   ***
 static int isLegalMove(HunterView gameState, LocationID move);
 static int isAdjacent(HunterView gameState, LocationID location);
 static int isFound(LocationID *array, LocationID location, int low, int high);
+static int isInTrail(LocationID *trail, LocationID loc);
 
 static LocationID firstMove(HunterView gameState);
 static LocationID randomMove(HunterView gameState);
@@ -35,7 +35,6 @@ static void idToAbbrev(LocationID move, char *abbrev);
 void decideHunterMove(HunterView gameState)
 {
     assert(gameState != NULL);
-    srand(time(NULL));  
 
     LocationID move = UNKNOWN_LOCATION;
     Round round = giveMeTheRound(gameState);
@@ -46,6 +45,8 @@ void decideHunterMove(HunterView gameState)
         move = firstMove(gameState);
     }
 
+
+    if(move == UNKNOWN_LOCATION) move = randomMove(gameState);
     assert(move >= MIN_MAP_LOCATION && move <= MAX_MAP_LOCATION);
 
     char abbrev[2];
@@ -90,10 +91,26 @@ static LocationID randomMove(HunterView gameState) {
     assert(adLoc != NULL);   
     assert(numLocations > 0);
 
-    int index = rand() % numLocations;
-    assert(isLegalMove(gameState, adLoc[index]) == TRUE);
+    srand(time(NULL));
+    LocationID move = adLoc[rand() % numLocations];
+
+    if(numLocations > 1) {
+        PlayerID player = whoAmI(gameState);
+        LocationID trail[TRAIL_SIZE];
+        giveMeTheTrail(gameState, player, trail);
+
+        int i = 0;
+        for(i = 0; i < numLocations; i++) {
+            if(!isInTrail(trail, adLoc[i])) {
+                move = adLoc[i];
+                break;
+            }
+        }       
+    }
+
+    assert(isLegalMove(gameState, move) == TRUE);
  
-    return adLoc[index];
+    return move;
 }
 
 
@@ -141,9 +158,10 @@ static void sortLocIDArray(LocationID *array, int low, int high) {
         }
     }
 
+    
     // Check whether the array is sorted
     for(i = low; i < high - 1; i++) {
-        assert(array[i] < array[i+1]);
+        assert(array[i] <= array[i+1]);
     }
 }
 
@@ -171,6 +189,18 @@ static int isFound(LocationID *array, LocationID location, int low, int high) {
 
     return isFound;
 }
+
+static int isInTrail(LocationID *trail, LocationID loc) {
+    assert(trail != NULL);
+
+    int i = 0;
+    for(i = 0; i < TRAIL_SIZE; i++) {
+        if(trail[i] == loc) return TRUE;
+    }
+
+    return FALSE;
+}
+
 
 // Convert the given move into a two-character string
 static void idToAbbrev(LocationID move, char *abbrev) {
