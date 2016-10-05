@@ -379,8 +379,8 @@ static int isAdjacent(DracView gameState, LocationID location) {
     LocationID *adLoc = adjacentLocations(gameState, &numLocations);
     assert(adLoc != NULL);
         
-    sortLocIDArray(adLoc, 0, numLocations);
-    if(isFound(adLoc, location, 0, numLocations) == FALSE) {
+    sortLocIDArray(adLoc, 0, numLocations - 1);
+    if(isFound(adLoc, location, 0, numLocations - 1) == FALSE) {
         free(adLoc);
         return FALSE;
     }
@@ -409,10 +409,10 @@ static void sortLocIDArray(LocationID *array, int low, int high) {
 
     int i, j, indexOfMin = 0;
 
-    for(i = low; i < high - 1; i++) {
+    for(i = low; i < high; i++) {
         indexOfMin = i;
 
-        for(j = i; j < high - 1; j++) {
+        for(j = i + 1; j <= high; j++) {
             if(array[indexOfMin] > array[j]) indexOfMin = j;
         }
 
@@ -424,7 +424,7 @@ static void sortLocIDArray(LocationID *array, int low, int high) {
     }
 
     // Check whether the array is sorted
-    for(i = low; i < high - 1; i++) {
+    for(i = low; i < high; i++) {
         assert(array[i] <= array[i+1]);
     }
 }
