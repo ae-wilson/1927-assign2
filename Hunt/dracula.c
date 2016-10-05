@@ -389,10 +389,9 @@ static int isFound(LocationID *array, LocationID location, int low, int high) {
 }
 
 static int randNumber(int n) {
-    srand(time(NULL));
-
     if(n == 1) return 0;
 
+    srand(time(NULL));
     int mode = rand() % 3;
     if(mode == 0) {
         return (rand() % n);
@@ -404,8 +403,8 @@ static int randNumber(int n) {
             val = rand() % n;
         }
 
-        return n;
-    } else if(mode == 2) {
+        return val;
+    } else {
         int mid = (n - 1)  / 2;
         int val = rand() % n;
 
