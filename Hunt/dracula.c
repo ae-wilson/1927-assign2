@@ -16,7 +16,7 @@
 #define TRUE 1
 #define FALSE 0
 
-#define MIN_HEALTH 26
+#define MIN_HEALTH 20
 
 // ***  Private Functions   ***
 static int isLegalMove(DracView gameState, LocationID move);
@@ -27,8 +27,8 @@ static int randNumber(int n);
 
 static LocationID firstMove(DracView gameState);
 static LocationID randomMove(DracView gameState);
-static LocationID lowHPMove(DracView gameState);
-static LocationID highHPMove(DracView gameState);
+static LocationID backToCastle(DracView gameState);
+static LocationID awayFromHunters(DracView gameState);
  
 static void sortLocIDArray(LocationID *array, int low, int high);
 static void idToAbbrev(LocationID move, char *abbrev);
@@ -46,9 +46,9 @@ void decideDraculaMove(DracView gameState) {
         int health = howHealthyIs(gameState, PLAYER_DRACULA);
     
         if(health > MIN_HEALTH) {
-            move = highHPMove(gameState);
+            move = awayFromHunters(gameState);
         } else {
-            move = lowHPMove(gameState);
+            move = backToCastle(gameState);
         } 
 
     } else {
@@ -240,7 +240,7 @@ static LocationID randomMove(DracView gameState) {
 }
 
 // Determine the move when Dracula's HP is low
-static LocationID lowHPMove(DracView gameState) {
+static LocationID backToCastle(DracView gameState) {
     assert(gameState != NULL);
 
     LocationID curr = whereIs(gameState, PLAYER_DRACULA);
@@ -296,8 +296,28 @@ static LocationID lowHPMove(DracView gameState) {
 }
 
 // Determine the move when Dracula's HP is low
-static LocationID highHPMove(DracView gameState) {
+static LocationID awayFromHunters(DracView gameState) {
     assert(gameState != NULL);
+    LocationID move = UNKNOWN_LOCATION;
+
+    LocationID currLoc = whereIs(gameState, PLAYER_DRACULA);    
+    
+    int dest, hunter = 0;
+    int distFromD, distFromH = 0;
+
+    for(dest = 0; dest < NUM_MAP_LOCATIONS; dest++) {
+        LocationID *sPath = shortestPath(gameState, &distFromD, currLoc, dest, 1, 1);
+        
+        int length = NUM_MAP_LOCATIONS;
+        for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
+            LocationID *sPathHunters = sPathForHunters(gameState, &distFromH, hunter, whereIs(gameState, hunter),
+                                                       dest, 1, 1, 1);
+
+            if(distFromH < length) length = distFromH;
+        }
+
+    }
+
     return randomMove(gameState);
 }
 
