@@ -53,9 +53,10 @@ int main(int argc, char *argv[])
 {
 #ifdef I_AM_DRACULA
    DracView gameState;
-   
-   char *plays = "GGA.... SSZ.... HBC.... MKL.... DSA.V.. GKL.... SCN.... HGA.... MBE.... DSOT... GBE.... SGA.... HKL.... MBE.... DVRT... GKL.... SKL.... HBE.... MVRTD.. DCNT... GBE.... SBE.... HVR.... MBE.... DBCT... GBE.... SVR.... HBE.... MBE.... DGAT... GSZ.... SSOT... HSO.... MSO.... DCDT.V. GSO.... SSO.... HSO.... MSA.... DKLT... GSO.... SSO.... HSA.... MSZ.... DBET... GSO.... SSA.... HSZ.... MKLT... DSJT.M. GSA.... SSZ.... HKL.... MGAT... DZAT.M. GSZ.... SKL.... HGA.... MCN.... DBDT... GKL.... SGA.... HCN.... MBC.... DSZT.M. GGA.... SCN.... HBC.... MCN.... DKL.V.. GCN.... SBC.... HCN.... MGA.... DCDT.M. GBC.... SCN.... HGA.... MCN.... DHIT.M. GCN.... SGA.... HCN.... MBC.... DD1T.M. GGA.... SCN.... HBC.... MCN.... DGAT.M. GCN.... SBC.... HCN.... MGAT... DBCT.M. GBCTD.. SCN.... HGA.... MSZ.... DKLT.V. GCN.... SGA.... HCN.... MSZ.... DCDT.M. GGA.... SCN.... HBC.... MKLT...";
 
+   char *plays = "GGE.... SPA.... HMI.... MCF.... DSA.V.. GGE.... SGE.... HVE.... MCF.... DSOT... GST.... SST.... HMU.... MCF.... DBCT... GMI.... SST.... HZA.... MCF.... DGAT... GVE.... SST.... HMU.... MCF.... DKLT... GFL.... SLI.... HMU.... MCF.... DBDT... GVE.... SVI.... HZA.... MCF.... DSZT.V. GGO.... SVI.... HMU.... MCF.... DBET.M. GTS.... SVI.... HZA.... MCF.... DBCT.M. GGO.... SVI.... HMU.... MCF.... DSOT.M. GVE.... SVI.... HZA.... MCF.... DVRT.M. GGO.... SVI.... HMU.... MCF.... DCNT.M. GTS.... SVI.... HZA.... MCF.... DGAT.M. GGO.... SVI.... HMU.... MTO.... DCD.VM. GTS.... SVI.... HVI.... MSR.... DKLT.M. GTS.... SZA.... HVI.... MMA.... DBCT.M. GTS.... SZA.... HVE.... MLS.... DBET.M. GTS.... SZA.... HVI.... MSN.... DSOT.M. GTS.... SZA.... HZA.... MSR.... DVRT.M. GTS.... SZA.... HZA.... MMA.... DCNT.V. GTS.... SZA.... HZA.... MLS.... DGAT.M. GTS.... SZA.... HZA.... MSN.... DKLT.M. GTS.... SZA.... HZA.... MSR.... DCDT.M. GTS.... SZA.... HZA.... MMA.... DHIT.M. GTS.... SZA.... HZA.... MLS.... DD1T.M. GTS.... SZA.... HZA.... MSN.... DTP..M. GTS.... SZA.... HZA.... MSR.... DGA.VM. GTS.... SZA.... HZA.... MMA.... DKLT.M. GTS.... SZA.... HZA.... MLS....";
+
+   
    PlayerMessage msgs[1850];
 
    int i = 0;

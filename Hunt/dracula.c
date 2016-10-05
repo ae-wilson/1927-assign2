@@ -24,7 +24,6 @@ static int isLegalMove(DracView gameState, LocationID move);
 static int isFound(LocationID *array, LocationID location, int low, int high);
 static int isAdjacent(DracView gameState, LocationID location);
 static int numHuntersThere(DracView gameState, LocationID loc);
-static int randNumber(int n);
 
 static LocationID firstMove(DracView gameState);
 static LocationID randomMove(DracView gameState);
@@ -203,7 +202,7 @@ static LocationID randomMove(DracView gameState) {
     }
 
     if(numLM > 0) {
-        int index = randNumber(numLM);
+        int index = rand() % numLM;
         move = legalMoves[index];
 
         if(numHuntersThere(gameState, move) > 0) {
@@ -310,9 +309,9 @@ static LocationID awayFromHunters(DracView gameState) {
 
     
     if(numSL > 1) {
-        int index = randNumber(numSL);
+        int index = rand() % numSL;
         while(safeLoc[index] == whereIs(gameState, PLAYER_DRACULA)) {
-            index = randNumber(numSL);
+            index = rand() % numSL;
         }
          
         move = safeLoc[index];
@@ -329,7 +328,6 @@ static LocationID awayFromHunters(DracView gameState) {
             assert(isLegalMove(gameState, move) == TRUE);
         }
     } 
-
     free(safeLoc);
 
     if(move == UNKNOWN_LOCATION) move = randomMove(gameState);    
@@ -382,7 +380,7 @@ static LocationID *safeConnectedLocations(DracView gameState, int *numLocations,
     
     int count = 0;
     for(loc = 0; loc < NUM_MAP_LOCATIONS; loc++) {
-        if(reachable[loc]) safePlaces[count++] = loc;
+        if(reachable[loc] == 1) safePlaces[count++] = loc;
     }
 
     *numLocations = count;
@@ -475,35 +473,6 @@ static int isFound(LocationID *array, LocationID location, int low, int high) {
     }
 
     return isFound;
-}
-
-static int randNumber(int n) {
-    if(n == 1) return 0;
-
-    srand(time(NULL));
-    int mode = rand() % 3;
-    if(mode == 0) {
-        return (rand() % n);
-    } else if(mode == 1) {
-        int mid = (n - 1) / 2;
-        int val = rand() % n;
-
-        while(val > mid) {
-            val = rand() % n;
-        }
-
-        return val;
-    } else {
-        int mid = (n - 1)  / 2;
-        int val = rand() % n;
-
-        while(val < mid) {
-            val = rand() % n;
-        }
-  
-        return val;
-    }
-
 }
 
 // Function to turn the ID of given move to a two-character string

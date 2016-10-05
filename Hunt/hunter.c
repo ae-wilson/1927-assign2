@@ -22,8 +22,6 @@
 static int isLegalMove(HunterView gameState, LocationID move);
 static int isAdjacent(HunterView gameState, LocationID location);
 static int isFound(LocationID *array, LocationID location, int low, int high);
-static int randNumber(int n);
-
 
 static LocationID firstMove(HunterView gameState);
 static LocationID randomMove(HunterView gameState);
@@ -103,7 +101,8 @@ static LocationID randomMove(HunterView gameState) {
     LocationID move = adLoc[rand() % numLocations];
 
     if(numLocations > 1) {
-        int index = randNumber(numLocations);
+        srand(time(NULL));
+        int index = rand() % numLocations;
         move = adLoc[index];     
     }
 
@@ -194,34 +193,6 @@ static int isFound(LocationID *array, LocationID location, int low, int high) {
     return isFound;
 }
 
-static int randNumber(int n) {
-    if(n == 1) return 0;
-
-    srand(time(NULL));
-    int mode = rand() % 3;
-    if(mode == 0) {
-        return (rand() % n);
-    } else if(mode == 1) {
-        int mid = (n - 1) / 2;
-        int val = rand() % n;
-
-        while(val > mid) {
-            val = rand() % n;
-        }
-
-        return val;
-    } else {
-        int mid = (n - 1)  / 2;
-        int val = rand() % n;
-
-        while(val < mid) {
-            val = rand() % n;
-        }
-  
-        return val;
-    }
-
-}
 
 // Convert the given move into a two-character string
 static void idToAbbrev(LocationID move, char *abbrev) {
