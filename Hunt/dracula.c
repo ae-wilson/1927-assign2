@@ -16,11 +16,14 @@
 #define TRUE 1
 #define FALSE 0
 
+#define MIN_HEALTH 26
+
 // ***  Private Functions   ***
 static int isLegalMove(DracView gameState, LocationID move);
 static int isFound(LocationID *array, LocationID location, int low, int high);
 static int isAdjacent(DracView gameState, LocationID location);
 static int numHuntersThere(DracView gameState, LocationID loc);
+static int randNumber(int n);
 
 static LocationID firstMove(DracView gameState);
 static LocationID randomMove(DracView gameState);
@@ -34,7 +37,6 @@ static void idToAbbrev(LocationID move, char *abbrev);
 // Function to decide the move of Dracula
 void decideDraculaMove(DracView gameState) {
     assert(gameState != NULL);
-    srand(time(NULL));
 
     int i = 0;
     Round round = giveMeTheRound(gameState); 
@@ -43,7 +45,7 @@ void decideDraculaMove(DracView gameState) {
     if(round > 0) {     
         int health = howHealthyIs(gameState, PLAYER_DRACULA);
     
-        if(health > 26) {
+        if(health > MIN_HEALTH) {
             move = highHPMove(gameState);
         } else {
             move = lowHPMove(gameState);
@@ -199,7 +201,8 @@ static LocationID randomMove(DracView gameState) {
     }
 
     if(numLM > 0) {
-        int index = rand() % numLM;
+        srand(time(NULL));
+        int index = randNumber(numLM);
         move = legalMoves[index];
 
         if(numHuntersThere(gameState, move) > 0) {
@@ -337,8 +340,6 @@ static int numHuntersThere(DracView gameState, LocationID loc) {
 // Selection Sort
 static void sortLocIDArray(LocationID *array, int low, int high) {
     assert(array != NULL);
-    assert(low >= MIN_MAP_LOCATION);
-    assert(high <= MAX_MAP_LOCATION);
 
     int i, j, indexOfMin = 0;
 
@@ -385,6 +386,36 @@ static int isFound(LocationID *array, LocationID location, int low, int high) {
     }
 
     return isFound;
+}
+
+static int randNumber(int n) {
+    srand(time(NULL));
+
+    if(n == 1) return 0;
+
+    int mode = rand() % 3;
+    if(mode == 0) {
+        return (rand() % n);
+    } else if(mode == 1) {
+        int mid = (n - 1) / 2;
+        int val = rand() % n;
+
+        while(val > mid) {
+            val = rand() % n;
+        }
+
+        return n;
+    } else if(mode == 2) {
+        int mid = (n - 1)  / 2;
+        int val = rand() % n;
+
+        while(val < mid) {
+            val = rand() % n;
+        }
+  
+        return val;
+    }
+
 }
 
 // Function to turn the ID of given move to a two-character string
