@@ -22,7 +22,8 @@
 static int isLegalMove(HunterView gameState, LocationID move);
 static int isAdjacent(HunterView gameState, LocationID location);
 static int isFound(LocationID *array, LocationID location, int low, int high);
-static int isInTrail(LocationID *trail, LocationID loc);
+static int randNumber(int n);
+
 
 static LocationID firstMove(HunterView gameState);
 static LocationID randomMove(HunterView gameState);
@@ -102,17 +103,8 @@ static LocationID randomMove(HunterView gameState) {
     LocationID move = adLoc[rand() % numLocations];
 
     if(numLocations > 1) {
-        PlayerID player = whoAmI(gameState);
-        LocationID trail[TRAIL_SIZE];
-        giveMeTheTrail(gameState, player, trail);
-
-        int i = 0;
-        for(i = 0; i < numLocations; i++) {
-            if(!isInTrail(trail, adLoc[i])) {
-                move = adLoc[i];
-                break;
-            }
-        }       
+        int index = randNumber(numLocations);
+        move = adLoc[index];     
     }
 
     assert(isLegalMove(gameState, move) == TRUE);
@@ -202,17 +194,34 @@ static int isFound(LocationID *array, LocationID location, int low, int high) {
     return isFound;
 }
 
-static int isInTrail(LocationID *trail, LocationID loc) {
-    assert(trail != NULL);
+static int randNumber(int n) {
+    if(n == 1) return 0;
 
-    int i = 0;
-    for(i = 0; i < TRAIL_SIZE; i++) {
-        if(trail[i] == loc) return TRUE;
+    srand(time(NULL));
+    int mode = rand() % 3;
+    if(mode == 0) {
+        return (rand() % n);
+    } else if(mode == 1) {
+        int mid = (n - 1) / 2;
+        int val = rand() % n;
+
+        while(val > mid) {
+            val = rand() % n;
+        }
+
+        return val;
+    } else {
+        int mid = (n - 1)  / 2;
+        int val = rand() % n;
+
+        while(val < mid) {
+            val = rand() % n;
+        }
+  
+        return val;
     }
 
-    return FALSE;
 }
-
 
 // Convert the given move into a two-character string
 static void idToAbbrev(LocationID move, char *abbrev) {
