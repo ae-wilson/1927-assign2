@@ -16,7 +16,8 @@
 #define TRUE 1
 #define FALSE 0
 
-#define MIN_HEALTH 20
+#define MIN_HEALTH 16
+#define DISTANCE 3
 
 // ***  Private Functions   ***
 static int isLegalMove(DracView gameState, LocationID move);
@@ -263,17 +264,13 @@ static LocationID backToCastle(DracView gameState) {
         if(isLegalMove(gameState, next) == TRUE) {
             return next;
         } else {
-            LocationID dracMoves[TRAIL_SIZE];
-            giveMeTheMoves(gameState, PLAYER_DRACULA, dracMoves);
-            
-            int i = 0;
-            for(i = 0; i < TRAIL_SIZE - 1; i++) {
-                if(dracMoves[i] == TELEPORT) dracMoves[i] = CASTLE_DRACULA;
-            }           
+            LocationID trail[TRAIL_SIZE];
+            giveMeTheTrail(gameState, PLAYER_DRACULA, trail);
 
+            int i = 0;
             int DBackPos = -1;
             for(i = 0; i < TRAIL_SIZE - 1; i++) {
-                if(dracMoves[i] == next) {
+                if(trail[i] == next) {
                     DBackPos = i;
                     break;
                 }
@@ -303,22 +300,71 @@ static LocationID awayFromHunters(DracView gameState) {
     LocationID currLoc = whereIs(gameState, PLAYER_DRACULA);    
     
     int dest, hunter = 0;
-    int distFromD, distFromH = 0;
+    int distFromD = 0;
+    int distFromH = NUM_MAP_LOCATIONS;
+   
+    int num = 0; 
+    LocationID outerMost[NUM_MAP_LOCATIONS];
 
     for(dest = 0; dest < NUM_MAP_LOCATIONS; dest++) {
         LocationID *sPath = shortestPath(gameState, &distFromD, currLoc, dest, 1, 1);
-        
-        int length = NUM_MAP_LOCATIONS;
+        free(sPath);        
+
+        int length = 0;
         for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
-            LocationID *sPathHunters = sPathForHunters(gameState, &distFromH, hunter, whereIs(gameState, hunter),
+            LocationID *huntersPath = sPathForHunters(gameState, &length, hunter, whereIs(gameState, hunter),
                                                        dest, 1, 1, 1);
 
-            if(distFromH < length) length = distFromH;
+            if(length < distFromH) distFromH = length; 
+            free(huntersPath);
         }
 
+        if(distFromH - distFromD >= DISTANCE && distFromD != 0) {
+            outerMost[num++] = dest;
+        }
     }
 
-    return randomMove(gameState);
+    if(num > 0) {
+        int index = randNumber(num);
+        dest = outerMost[index];
+
+        int length = 0;
+        LocationID *sPath = shortestPath(gameState, &length, currLoc, dest, 1, 1);
+        assert(sPath != NULL);
+        
+        if(length == 1) {
+            move = sPath[0];
+        } else {
+            move = sPath[1];
+        }
+       
+        if(currLoc == move) {
+            if(isLegalMove(gameState, HIDE)) {
+                move =  HIDE;
+            } else if(isLegalMove(gameState, DOUBLE_BACK_1)) {
+                move = DOUBLE_BACK_1;
+            } else {
+                move = randomMove(gameState);
+            }
+
+        } else if(!isLegalMove(gameState, move)) {
+            LocationID trail[TRAIL_SIZE]; 
+            giveMeTheTrail(gameState, PLAYER_DRACULA, trail);
+ 
+            int i = 0;
+            for(i = 0; i < TRAIL_SIZE - 1; i++) {
+                if(move == trail[i]) break;
+            }
+            move = DOUBLE_BACK_1 + i;            
+
+            assert(isLegalMove(gameState, move));
+        } 
+ 
+    }
+       
+    if(move == UNKNOWN_LOCATION) move = randomMove(gameState);
+
+    return move;
 }
 
 // Check if the given location is adjacent to Dracula's current location
