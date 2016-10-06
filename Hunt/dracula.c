@@ -569,8 +569,7 @@ static int isSafeCastle(DracView gameState) {
         int length = 0;
         LocationID *sPath = sPathForHunters(gameState, &length, hunter, whereIs(gameState, hunter),
                                             CASTLE_DRACULA, 1, 1, 1); 
-        
-        
+            
         assert(sPath != NULL);
 
         if(length < distFromH) distFromH = length;
