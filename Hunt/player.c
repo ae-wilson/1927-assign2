@@ -107,7 +107,8 @@ int main(int argc, char *argv[])
    disposeDracView(gameState);
 #else
    HunterView gameState;
-   char *plays = "GZA.... SED.... HBR....";
+   char *plays = "GGE.... SPA.... HMI.... MCF.... DC?.V.. GMI.... SBO.... HMU.... MMR.... DHIT... GZU.... SCO.... HMI.... MMI.... DD1T... GLI.... SFR.... HFL.... MZU.... DS?.... GBR.... SCO.... HGE.... MLI.... DC?T... GPR.... SAM.... HZU.... MBR.... DC?T... GBR.... SNS.... HGE.... MPR.... DC?T.V. GMU.... SAM.... HMI.... MBR.... DC?T.M. GMI.... SNS.... HZU.... MMU.... DC?T.M. GFL.... SAM.... HLI.... MMI.... DHIT... GGE.... SNS.... HBR.... MFL.... DD1T.M. GZU.... SAM.... HPR.... MGE.... DC?T.M. GGE.... SNS.... HBR.... MZU.... DC?T.M. GMI.... SAM.... HMU.... MGE.... DC?.VM. GZU.... SNS.... HMI.... MMI.... DC?T.M. GLI.... SAM.... HFL.... MZU.... DHIT.M. GBR.... SNS.... HGE.... MLI.... DC?T.M. GPR.... SHA.... HGO.... MNU.... DD1T.M. GVE.... SCO.... HVE.... MST.... DSRT.M. GVI.... SST.... HVI.... MZU.... DC?T.V. GMU.... SCO.... HVE.... MGO.... DCFT.M. GZA.... SPA.... HVI.... MVE.... DTOT.M. GVI.... SCFT... HMU.... MVI.... DBAT.M. GHA.... STOT... HZA.... MVE.... DS?..M. GCO.... SSRT... HVI.... MVI.... DD1.... GST.... SBAT... HHA.... MMU.... DS?..M. GZU.... SBA.... HCO.... MZA.... DC?.V.. GGO.... STO.... HST.... MVI.... DC?T... GVE.... SSR.... HZU.... MHA.... DHIT... GVI.... SBA.... HGO.... MCO.... DC?T... GVE.... SLS.... HVE.... MST.... DD1T... GVI.... SCA.... HVI.... MZU.... DS?.... GMU.... SGR.... HVE.... MGO.... DS?..V. GZA.... SMA.... HVI.... MVE.... DC?T.M. GSJ.... SBO.... HPR.... MGO.... DC?T.M. GZA.... STO.... HVI.... MVE.... DHIT.M. GSJ.... SSR.... HVE.... MGO.... DD1T.M. GZA.... SSN.... HGO.... MVE.... DTPT... GSJ.... SMA.... HVE.... MGO.... DC?T... GZA.... SGR.... HGO.... MVE.... DC?.VM. GSJ.... SMA.... HVE.... MGO.... DC?T.M. GZA.... SSN.... HGO.... MVE.... DC?T.M. GSJ.... SMA.... HVE.... MGO.... DHIT.M. GZA.... SGR.... HGO.... MVE.... DD1T.M. GSJ.... SMA.... HVE.... MGO.... DC?T.M. GZA.... SSN.... HGO.... MVE.... DC?T.V. GSJ.... SMA.... HVE.... MGO.... DC?T.M. GZA.... SGR.... HGO.... MVE.... DC?T.M. GSJ.... SMA.... HVE.... MGO.... DHIT.M. GZA.... SSN.... HGO.... MVE.... DC?T.M. GSJ.... SMA.... HVE.... MGO.... DD1T.M. GZA.... SGR.... HGO.... MVE.... DC?T.M. GSZ.... SCA.... HGE.... MBD.... DC?.VM. GJM.... SLS.... HFL.... MVI.... DSOT.M. GSZ.... SBA.... HRO.... MPR.... DC?T.M. GSOT... SSR.... HNP.... MBD.... DVAT.M. GVATD.. SSN.... HRO.... MVI.... DS?..M. GVA.... SLS.... HGE.... MPR.... DD1..M. GSA.... SBA.... HPA.... MNU.... DS?..V. GVA.... SSR.... HCF.... MPR.... DCNT... GSA.... SSN.... HPA.... MBD.... DC?T.M. GSO.... SLS.... HFR.... MVI.... DHIT... GBC.... SBA.... HNU.... MPR.... DSOT... GCNT... SSR.... HMU.... MBD.... DD1T... GCN.... SSN.... HNU.... MVI.... DSJT... GGA.... SLS.... HFR.... MPR.... DVA.V.. GCN.... SBA.... HNU.... MNU.... DC?T.M. GBS.... SSR.... HMU.... MLI.... DHIT.M. GVR.... SBO.... HVE.... MMU.... DS?..M. GSOT... SMA.... HSZ.... MZA.... DD1.... GVAV... SSR.... HJM.... MSJT... DS?.... GSJ.... SBO.... HBE.... MVA.... DC?T... GVA.... SNA.... HVR.... MSJ.... DC?T.M. GSJ.... SLE.... HCN.... MVA.... DHIT.M. GVA.... SMR.... HBS.... MSJ.... DC?T... GSJ.... STO.... HVR.... MVA.... DC?T... GVA.... SMR.... HSA.... MSJ.... DC?T... GSJ.... SLE.... HSO.... MVA.... DC?T.M. GVA.... SMR.... HSA.... MSJ.... DC?.VM. GSJ.... SGE.... HSO.... MVA.... DHIT.M. GVA.... SST.... HBC.... MSJ.... DD1T.M. GSJ.... SPA.... HCN.... MVA.... DC?T.M. GVA.... SBU.... HGA.... MSJ.... DC?T.M. GSJ.... SPA.... HCN.... MVA.... DC?T.M. GVA.... SCF.... HSZ.... MSJ.... DC?T.V. GSJ.... SPA.... HSO.... MVA.... DHIT.M. GVA.... SBU.... HVA.... MSJ.... DC?T.M. GSJ.... SPA.... HSJ.... MVA.... DD1T.M. GVA.... SCF.... HVA.... MSJ.... DC?T.M. GSJ.... SPA.... HAT.... MBE.... DC?T.M. GBE.... SCF.... HVA.... MSZ.... DC?T.M. GSA.... STO.... HAT.... MKL.... DC?.VM. GVA.... SBA.... HVA.... MSZ.... DC?T.M. GAT.... STO.... HAT.... MBE.... DC?T.M. GVA.... SBA.... HVA.... MSZ.... DC?T.M. GAT.... STO.... HAT.... MKL.... DC?T.M. GVA.... SBA.... HVA.... MSZ.... DCOT.M. GAT.... STO.... HAT.... MBE.... DC?T.V. GVA.... SBA.... HVA.... MSZ.... DC?T.M. GAT.... STO.... HAT.... MKL.... DLIT.M. GIO.... SCF.... HIO.... MBD.... DC?T.M. GBS.... SMR.... HBS.... MKL.... DBRT.M. GVR.... SCOT... HVR.... MBD.... DPRT... GCN.... SCO.... HSO.... MSZ.... DHIT.M. GBS.... SFR.... HSJ.... MVR.... DD1.VM. GVR.... SLIT... HJM.... MSO.... DC?T... GCN.... SBRT... HBE.... MSA.... DZAT.M. GBD.... SBR.... HSJ.... MSO.... DC?T... GKL.... SPRTT.. HJM.... MSJ.... DC?T... GBD.... SBE.... HBE.... MJM.... DC?T... GZAT...";
+
    PlayerMessage msgs[1850];
    int i = 0;
    for(i = 0; i < 1850; i++) strcpy(msgs[i], "");
@@ -115,15 +116,13 @@ int main(int argc, char *argv[])
    gameState = newHunterView(plays,msgs);
 
    int length = 0;
-   LocationID *sPath = shortestPath(gameState, &length, PLAYER_VAN_HELSING, BERLIN, BELGRADE, 1, 1, 1);
-   
-   if(length > 0) {
-       assert(sPath != NULL);
+   LocationID *connLoc = whereCanTheyGo(gameState, &length, whoAmI(gameState), 1, 1, 1);   
+   assert(connLoc != NULL);
 
-       printf("Shortes Path from Berlin to Belgrade:\n");
-   }
+   printf("Round number: %d\n", giveMeTheRound(gameState));
+   printf("Current Location: %s\n\n", idToName(whereIs(gameState, whoAmI(gameState))));
 
-   for(i = 0; i < length; i++) printf("%s\n", idToName(sPath[i]));
+   for(i = 0; i < length; i++) printf("%s\n", idToName(connLoc[i]));
    
 
    decideHunterMove(gameState);
