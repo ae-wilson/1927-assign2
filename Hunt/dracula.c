@@ -16,17 +16,19 @@
 #define TRUE 1
 #define FALSE 0
 
-#define MIN_HEALTH 16
-#define DISTANCE 3
+#define MIN_HEALTH 8
+#define SAFE_DISTANCE 3
 
 // ***  Private Functions   ***
 static int isLegalMove(DracView gameState, LocationID move);
 static int isFound(LocationID *array, LocationID location, int low, int high);
 static int isAdjacent(DracView gameState, LocationID location);
+static int isSafeCastle(DracView gameState);
 static int hasDBInTrail(DracView gameState);
 static int numHuntersThere(DracView gameState, LocationID loc);
 
 static LocationID firstMove(DracView gameState);
+static LocationID BestMove(DracView gameState);
 static LocationID randomMove(DracView gameState);
 static LocationID backToCastle(DracView gameState);
 static LocationID awayFromHunters(DracView gameState);
@@ -45,22 +47,16 @@ void decideDraculaMove(DracView gameState) {
     LocationID move = UNKNOWN_LOCATION;
    
     if(round > 0) {     
-        int health = howHealthyIs(gameState, PLAYER_DRACULA);
-    
-        if(health > MIN_HEALTH) {
-            move = awayFromHunters(gameState);
-        } else {
-            move = backToCastle(gameState);
-        } 
-
+        // Determine the best move depending on the current state of the game
+        move = BestMove(gameState);
     } else {
-        // Move in first round (Round 0)
+        // Move in first round (i.e: Round 0)
         move = firstMove(gameState);
     } 
 
     
-
-    // Send the move to the game engine
+    // Send the move to the game engine after converting the move
+    // into string (with two characters)
     char abbrev[2];
     for(i = 0; i <= 2; i++) abbrev[i] = '\0';
     if(move == UNKNOWN_LOCATION) move = TELEPORT;
@@ -81,7 +77,12 @@ static int isLegalMove(DracView gameState, LocationID move) {
     {
         return FALSE;
     }
-    
+   
+    if(giveMeTheRound(gameState) == 0) {
+        if(move != ST_JOSEPH_AND_ST_MARYS) return TRUE;
+    }
+
+ 
     LocationID dracMoves[TRAIL_SIZE];
     int i = 0;
     for(i = 0; i < TRAIL_SIZE; i++) {
@@ -89,13 +90,11 @@ static int isLegalMove(DracView gameState, LocationID move) {
     }
 
     giveMeTheMoves(gameState, PLAYER_DRACULA, dracMoves);
-
     for(i = 0; i < TRAIL_SIZE - 1; i++) {
         if(dracMoves[i] == TELEPORT) {
             dracMoves[i] = CASTLE_DRACULA;
         }
     }
-
 
 
     if(move >= MIN_MAP_LOCATION && move <= MAX_MAP_LOCATION) {
@@ -155,7 +154,7 @@ static LocationID firstMove(DracView gameState) {
             occupied[i] = 1;
         }
     }
-    occupied[ST_JOSEPH_AND_ST_MARYS]= 1;
+    occupied[ST_JOSEPH_AND_ST_MARYS] = 1;
 
     for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
         int numLocations = 0;
@@ -188,6 +187,27 @@ static LocationID firstMove(DracView gameState) {
 
     return firstMove;
 } 
+
+static LocationID BestMove(DracView gameState) {
+    assert(gameState != NULL);
+
+    int health = howHealthyIs(gameState, PLAYER_DRACULA);
+    LocationID move = UNKNOWN_LOCATION;   
+ 
+    if(health > MIN_HEALTH) {
+        if(isSafeCastle(gameState)) {
+            move = backToCastle(gameState);
+        } else {
+            move = awayFromHunters(gameState);
+        }
+    } else {
+        move = backToCastle(gameState);
+    } 
+
+    if(move == UNKNOWN_LOCATION) move = randomMove(gameState);
+    
+    return move;
+}
 
 // Function to make a random (and legal) move
 static LocationID randomMove(DracView gameState) {
@@ -298,12 +318,12 @@ static LocationID backToCastle(DracView gameState) {
            
                 return next;
             } else {
-                return randomMove(gameState);
+                return awayFromHunters(gameState);
             }
 
         } 
     } else {
-        return randomMove(gameState);
+        return awayFromHunters(gameState);
     }
 }
 
@@ -443,13 +463,14 @@ static LocationID *safeConnectedLocations(DracView gameState, int *numLocations,
 
         reachable[v] = 1;
     }
+    reachable[ST_JOSEPH_AND_ST_MARYS] = 0;
     free(connLoc);
 
     // Find out where hunters can reach and try to figure out
     // safe spots
     for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
         int number = 0;
-        LocationID *link = whereCanTheyGo(gameState, &number, hunter, 1, 1, 1);
+        LocationID *link = whereCanTheyGo(gameState, &number, hunter, 1, 1, 0);
         assert(link != NULL);
         
         for(loc = 0; loc < number; loc++) {
@@ -460,6 +481,7 @@ static LocationID *safeConnectedLocations(DracView gameState, int *numLocations,
         }
         free(link);
     }
+    
 
     // Count the length and fill in the safePlace array with reachable location
     int count = 0;
@@ -527,6 +549,46 @@ static int numHuntersThere(DracView gameState, LocationID loc) {
     return num;
 }
 
+static int isSafeCastle(DracView gameState) {
+    assert(gameState != NULL);
+
+    LocationID trail[TRAIL_SIZE];
+    int i = 0;
+    for(i = 0; i < TRAIL_SIZE; i++) trail[i] = UNKNOWN_LOCATION;
+    giveMeTheTrail(gameState, PLAYER_DRACULA, trail);
+
+    for(i = 0; i < TRAIL_SIZE; i++) {
+        if(trail[i] ==  CASTLE_DRACULA) return FALSE;
+    }
+
+
+    int hunter = 0; 
+    int distFromH = NUM_MAP_LOCATIONS + 1;
+ 
+    for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
+        int length = 0;
+        LocationID *sPath = sPathForHunters(gameState, &length, hunter, whereIs(gameState, hunter),
+                                            CASTLE_DRACULA, 1, 1, 1); 
+        assert(sPath != NULL);
+
+        if(length < distFromH) distFromH = length;
+        free(sPath);
+    }
+
+    int distFromD = 0;
+    LocationID *sPath = shortestPath(gameState, &distFromD, whereIs(gameState, PLAYER_DRACULA),
+                                     CASTLE_DRACULA, 1, 1);
+   
+    int isSafe = FALSE;
+    if(distFromD == 0) return FALSE;
+
+    if(distFromH - distFromD >= SAFE_DISTANCE) {
+        isSafe = TRUE;
+    } 
+    free(sPath);
+
+    return isSafe;
+}
 
 // Selection Sort
 static void sortLocIDArray(LocationID *array, int low, int high) {

@@ -149,6 +149,6 @@ LocationID *shortestPath(DracView currentView, int *length, LocationID start, Lo
                          int road, int sea);
 
 LocationID *sPathForHunters(DracView currentView, int *length, PlayerID player, LocationID start, LocationID end,
-                         int road, int rail, int sea); 
+                            int road, int rail, int sea); 
 
 #endif
