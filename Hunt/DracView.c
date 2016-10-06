@@ -683,8 +683,10 @@ LocationID *sPathForHunters(DracView currentView, int *length, PlayerID player, 
              
             int j = 0;
             for(j = 0; j < numLocations; j++) {
-                if(i + 1 < NUM_MAP_LOCATIONS) enterQueue(qList[i+1], connLoc[j]);
-
+                if(!visited[i] && i + 1 < NUM_MAP_LOCATIONS) {
+                    enterQueue(qList[i+1], connLoc[j]);
+                }
+ 
                 if(dist[s] + cost < dist[connLoc[j]]) {
                     dist[connLoc[j]] = dist[s] + cost;
                     pred[connLoc[j]] = s;

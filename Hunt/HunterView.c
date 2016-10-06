@@ -410,7 +410,9 @@ LocationID *shortestPath(HunterView currentView, int *length, PlayerID player, L
              
             int j = 0;
             for(j = 0; j < numLocations; j++) {
-                if(i + 1 < NUM_MAP_LOCATIONS) enterQueue(qList[i+1], connLoc[j]);
+                if(!visited[i] && i + 1 < NUM_MAP_LOCATIONS) {
+                    enterQueue(qList[i+1], connLoc[j]);
+                }
 
                 if(dist[s] + cost < dist[connLoc[j]]) {
                     dist[connLoc[j]] = dist[s] + cost;
@@ -432,7 +434,6 @@ LocationID *shortestPath(HunterView currentView, int *length, PlayerID player, L
         *length = 0;
         return NULL;
     }
-
 
 
     int count = 0;

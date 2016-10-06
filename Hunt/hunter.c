@@ -16,7 +16,7 @@
 #define TRUE 1
 #define FALSE 0
 
-#define MIN_HEALTH 4
+#define MIN_HEALTH 3
 
 // ***  Private Functions   ***
 static int isLegalMove(HunterView gameState, LocationID move);
@@ -31,7 +31,6 @@ static void sortLocIDArray(LocationID *array, int low, int high);
 static void idToAbbrev(LocationID move, char *abbrev);
 
 
-
 void decideHunterMove(HunterView gameState)
 {
     assert(gameState != NULL);
@@ -42,7 +41,7 @@ void decideHunterMove(HunterView gameState)
     if(round > 0) {
         int health = howHealthyIs(gameState, whoAmI(gameState));
 
-        if(health > MIN_HEALTH) {
+        if(health >= MIN_HEALTH) {
             move = randomMove(gameState);
         } else {
             move = Rest(gameState);
@@ -98,16 +97,31 @@ static LocationID randomMove(HunterView gameState) {
     assert(numLocations > 0);
 
     srand(time(NULL));
-    LocationID move = adLoc[rand() % numLocations];
+    LocationID move = adLoc[0];
 
     if(numLocations > 1) {
+        LocationID diff[NUM_MAP_LOCATIONS];
+
+        int i = 0;
+        int count = 0;
+
+        for(i = 0; i < NUM_MAP_LOCATIONS; i++) diff[i] = UNKNOWN_LOCATION;
+        
+        for(i = 0; i < numLocations; i++) {
+            if(adLoc[i] != whereIs(gameState, whoAmI(gameState))) {
+                diff[count++] = adLoc[i];
+            }
+        }
+
         srand(time(NULL));
-        int index = rand() % numLocations;
-        move = adLoc[index];     
+        int index = rand() % count;
+        move = diff[index];
+        assert(move != whereIs(gameState, whoAmI(gameState)));     
     }
 
-    assert(isLegalMove(gameState, move) == TRUE);
- 
+    free(adLoc); 
+
+    assert(isLegalMove(gameState, move) == TRUE); 
     return move;
 }
 
