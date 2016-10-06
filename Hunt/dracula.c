@@ -16,7 +16,6 @@
 #define TRUE 1
 #define FALSE 0
 
-#define MIN_HEALTH 14
 #define SAFE_DISTANCE 3
 
 // ***  Private Functions   ***
@@ -191,19 +190,14 @@ static LocationID firstMove(DracView gameState) {
 static LocationID BestMove(DracView gameState) {
     assert(gameState != NULL);
 
-    int health = howHealthyIs(gameState, PLAYER_DRACULA);
     LocationID move = UNKNOWN_LOCATION;   
  
-    if(health > MIN_HEALTH) {
-        if(isSafeCastle(gameState)) {
-            move = backToCastle(gameState);
-        } else {
-            move = awayFromHunters(gameState);
-        }
-    } else {
+    if(isSafeCastle(gameState)) {
         move = backToCastle(gameState);
-    } 
-
+    } else {
+        move = awayFromHunters(gameState);
+    }
+   
     if(move == UNKNOWN_LOCATION) move = randomMove(gameState);
     
     return move;
