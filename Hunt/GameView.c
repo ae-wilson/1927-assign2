@@ -168,13 +168,13 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
              
             if(currLoc == CASTLE_DRACULA) {
                 gameView->health[player] += LIFE_GAIN_CASTLE_DRACULA;    //gain HP as Dracula is in his castle
-            } else if(gameView->trail_perPlayer[player][0] >= MIN_MAP_LOCATION && gameView->trail_perPlayer[player][0] <= MAX_MAP_LOCATION) {
+            } else if(currLoc >= MIN_MAP_LOCATION && currLoc <= MAX_MAP_LOCATION) {
 
                 //lose 2 HP when Dracula is at the sea
-                if(idToType(gameView->trail_perPlayer[player][0]) == SEA) {
+                if(idToType(currLoc) == SEA) {
                     gameView->health[player] -= LIFE_LOSS_SEA;
                 } 
-            } else if(gameView->trail_perPlayer[player][0] == SEA_UNKNOWN) {
+            } else if(currLoc == SEA_UNKNOWN) {
                 gameView->health[player] -= LIFE_LOSS_SEA;
             }
  
