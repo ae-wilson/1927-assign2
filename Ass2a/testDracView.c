@@ -157,23 +157,11 @@ static void UnitTest1(void) {
 
 static void UnitTest2(void) {
     printf("#####   Unit Test 2   #####\n");
-    printf("Test on whereCanIgo and whereCanTheyGo when Dracula hasn't started his turn yet\n");
 
-    PlayerMessage messages1[] = {"Turn 1", "Turn 2", "Turn 3", "Turn 4"};
-    DracView dracView = newDracView("GST.... SAO.... HZU.... MBB....", messages1);
-    assert(dracView != NULL);
-    
-    int numLocations = 1;
-    LocationID *possibleMoves = whereCanIgo(dracView, &numLocations, 1, 1);
-    assert(numLocations == 0);
-    free(possibleMoves);    
-    numLocations = 1;
-    possibleMoves = whereCanTheyGo(dracView, &numLocations, PLAYER_DRACULA, 1, 1, 1);      
-    assert(numLocations == 0);
-    free(possibleMoves);
-    disposeDracView(dracView);
-    printf("passed!\n");
-
+    DracView dracView;
+    PlayerMessage messages1[] = {"Hello"} ;
+    LocationID *possibleMoves;
+    int numLocations = 0;
 
     printf("Test on whereCanIgo when Draculas's castle is in his trail\n");
     dracView = newDracView("GPA.... SBC.... HMU.... MSR.... DCD.V.. GPA.... SBC.... HMU.... MSR.... DHIT... GPA.... SBC.... HMU.... MSR.... DD1T... GPA.... SBC.... HMU.... MSR.... DGAT... GPA.... SBC.... HMU.... MSR.... DKLT... GPA.... SBC.... HMU.... MSR....", messages1);

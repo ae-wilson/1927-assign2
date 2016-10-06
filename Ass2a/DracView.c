@@ -13,22 +13,31 @@
 #include "GameView.h"
 #include "Map.h"
 #include "DracView.h"
+#include "Queue.h"
 
 #define TRUE 1
 #define FALSE 0
-     
-struct dracView {
-    Map g;                        // The Map
-    GameView gameView;            // The game view
-    int turn;                     // Turn number
-    int score;                    // Game score
-    int *lastTurnHealth;          // Players' health in last turn
-    int *health;                  // Players' health in this turn
+  
 
-    int *numTrap;                 // Number of traps [0..3] at specific location [0..70]
+typedef struct vNode *VList;
+struct vNode {
+   LocationID  v;    // ALICANTE, etc
+   TransportID type; // ROAD, RAIL, BOAT
+   VList       next; // link to next node
+};
+
+struct MapRep {
+   int   nV;         // #vertices
+   int   nE;         // #edges
+   VList connections[NUM_MAP_LOCATIONS]; // array of lists
+};
+   
+struct dracView {
+    GameView gameView;            // The game view
+    
     int *numIV;                   // Number of immature vampire [0..1] at specific location [0..70]
+    int *numTrap;                 // Number of traps [0..3] at specific location [0..70]
     LocationID **trail_perPlayer; // stores trail for each player in 2D array 
-    PlayerMessage *ms;            // Player Messages
 };
     
 //Private Functions
@@ -46,14 +55,8 @@ DracView newDracView(char *pastPlays, PlayerMessage messages[])
     //Initialise the DracView ADT
     DracView dracView = malloc(sizeof(struct dracView));
     assert(dracView != NULL);
-    dracView->g = newMap();
-    assert(dracView->g != NULL); 
     dracView->gameView = newGameView(pastPlays, messages);
     assert(dracView->gameView != NULL); 
-    dracView->lastTurnHealth = malloc(NUM_PLAYERS * sizeof(int));
-    assert(dracView->lastTurnHealth != NULL);
-    dracView->health = malloc(NUM_PLAYERS * sizeof(int));
-    assert(dracView->health != NULL);
     dracView->numTrap = malloc(NUM_MAP_LOCATIONS * sizeof(int));
     assert(dracView->numTrap != NULL);
     dracView->numIV = malloc(NUM_MAP_LOCATIONS * sizeof(int));
@@ -76,22 +79,9 @@ DracView newDracView(char *pastPlays, PlayerMessage messages[])
         }
     }
 
-
-    // Game data at the beginning of the game
-    dracView->turn = 1;
-    dracView->score = GAME_START_SCORE;    
-
-    for(i = 0; i < PLAYER_DRACULA; i++) {
-        dracView->lastTurnHealth[i] = GAME_START_HUNTER_LIFE_POINTS;
-        dracView->health[i] = GAME_START_HUNTER_LIFE_POINTS;
-    }
-    dracView->lastTurnHealth[i] = GAME_START_BLOOD_POINTS;
-    dracView->health[i] = GAME_START_BLOOD_POINTS;    
-
     // Obtain useful data form pastPlays string
     int interval = 8;
     for(i = 0; i < strlen(pastPlays); i += interval) {
-        dracView->turn++;                             // increase the turn number
         PlayerID player = whichPlayer(pastPlays[i]);  // find out which player
 
         char *location = malloc(4 * sizeof(char));    // get the abbrev of locations
@@ -106,12 +96,6 @@ DracView newDracView(char *pastPlays, PlayerMessage messages[])
         //player = one of the hunters
         if(player != PLAYER_DRACULA) {
             for(j = i + 3; j < i + interval - 1; j++) {
-                if(dracView->health[player] == 0) {
-                    dracView->lastTurnHealth[player] = 0;
-                    dracView->health[player] = GAME_START_HUNTER_LIFE_POINTS;
-                } else {
-                    dracView->lastTurnHealth[player] = dracView->health[player];
-                }
 
                 if(pastPlays[j] == '.') break;  // No more encounters this turn           
 
@@ -124,7 +108,6 @@ DracView newDracView(char *pastPlays, PlayerMessage messages[])
                     // Disarm the trap and lose HP
                     assert(dracView->numTrap[currLoc] > 0);
                     assert(idToType(currLoc) != SEA);
-                    dracView->health[player] -= LIFE_LOSS_TRAP_ENCOUNTER; 
                     dracView->numTrap[currLoc] -= 1;
                 } else if(pastPlays[j] == 'V') {
  
@@ -136,29 +119,9 @@ DracView newDracView(char *pastPlays, PlayerMessage messages[])
 
                     // Confront Dracula
                     assert(idToType(currLoc) != SEA);
-                    dracView->health[player] -= LIFE_LOSS_DRACULA_ENCOUNTER;
-                    dracView->health[PLAYER_DRACULA] -= LIFE_LOSS_HUNTER_ENCOUNTER;   
                 }
-
-                // No more actions when HP gets to ZERO --> teleported to hospital
-                if(dracView->health[player] <= 0) {
-                    dracView->health[player] = 0;
-                    dracView->score -= SCORE_LOSS_HUNTER_HOSPITAL;
-                    break;
-                } 
             }
-            
-            if((dracView->trail_perPlayer[player][0] == dracView->trail_perPlayer[player][1]) && 
-                dracView->health[player] > 0) {
 
-                //take rest or research at the same location
-                dracView->health[player] += LIFE_GAIN_REST;
-
-                //make sure Hunter HP does not exceed the limit (HP: 9)
-                if(dracView->health[player] > GAME_START_HUNTER_LIFE_POINTS) {
-                    dracView->health[player] = GAME_START_HUNTER_LIFE_POINTS;
-                }
-            }        
         } else {
 
             // player = Dracula     
@@ -191,9 +154,17 @@ DracView newDracView(char *pastPlays, PlayerMessage messages[])
                 dracView->trail_perPlayer[player][0] = CASTLE_DRACULA;
             }
                
-  
             LocationID currLoc = dracView->trail_perPlayer[player][0];
             assert(currLoc >= MIN_MAP_LOCATION && currLoc <= MAX_MAP_LOCATION);
+
+            if(pastPlays[i+5] == 'M') {
+                // The Trap malfunctions
+                LocationID leaveTrail = dracView->trail_perPlayer[player][6];
+                assert(leaveTrail >= MIN_MAP_LOCATION && leaveTrail <= MAX_MAP_LOCATION);
+                assert(idToType(leaveTrail) != SEA);
+                assert(dracView->numTrap[leaveTrail] > 0);
+                dracView->numTrap[leaveTrail] -= 1;
+            }
 
             if(pastPlays[i+3] == 'T') {
                 // Place a trap
@@ -216,55 +187,9 @@ DracView newDracView(char *pastPlays, PlayerMessage messages[])
                 assert(idToType(whereIV) != SEA);
                 assert(dracView->numIV[whereIV] == 1);
                 dracView->numIV[whereIV] = 0;
-                dracView->score -= SCORE_LOSS_VAMPIRE_MATURES;
-            } else if(pastPlays[i+5] == 'M') {
-                // The Trap malfunctions
-                LocationID leaveTrail = dracView->trail_perPlayer[player][6];
-                assert(leaveTrail >= MIN_MAP_LOCATION && leaveTrail <= MAX_MAP_LOCATION);
-                assert(idToType(leaveTrail) != SEA);
-                assert(dracView->numTrap[leaveTrail] > 0);
-                dracView->numTrap[leaveTrail] -= 1;
             }
+        } 
 
-            //Update the health point at the end of turns
-            dracView->lastTurnHealth[player] = dracView->health[player];
-            if(currLoc == CASTLE_DRACULA) {
-
-                //gain HP as Dracula is in his castle
-                dracView->health[player] += LIFE_GAIN_CASTLE_DRACULA;
-            } else if(idToType(currLoc) == SEA) {
-                // lose 2 HP when Dracula is at the sea
-                dracView->health[player] -= LIFE_LOSS_SEA;
-                
-            } 
-
-            //score - 1 when Dracula finishes his turn
-            dracView->score -= SCORE_LOSS_DRACULA_TURN;    
-        }
-    } 
-
-
-    //The current Player got killed by Dracula in last turn, and this turn the hunter's health 
-    //is restored to full health, and allowed to leave the hospital
-    PlayerID currentPlayer = getCurrentPlayer(dracView->gameView);
-    if(currentPlayer != PLAYER_DRACULA) {
-        if(dracView->health[currentPlayer] == 0) {
-            dracView->lastTurnHealth[currentPlayer] = 0;
-            dracView->health[currentPlayer] = GAME_START_HUNTER_LIFE_POINTS;
-        }
-    }
-
-    //Copy Player messages into the DracView ADT
-    if(dracView->turn > 1) {
-        dracView->ms = malloc((dracView->turn - 1) * sizeof(PlayerMessage));
-        assert(dracView->ms != NULL);
-        
-        int k;
-        for(k = 0; k < dracView->turn - 1; k++) {
-            assert(dracView->ms[k] != NULL);
-            memset(dracView->ms[k], 0, MESSAGE_SIZE);
-            strcpy(dracView->ms[k], messages[k]);
-        }
     }
 
     return dracView;
@@ -276,21 +201,13 @@ void disposeDracView(DracView toBeDeleted)
 {
     validDracView(toBeDeleted);
 
-    if(toBeDeleted->turn > 1) {
-        assert(toBeDeleted->ms != NULL);
-        free(toBeDeleted->ms);
-    }
-
     int i;
     for(i = 0; i < NUM_PLAYERS; i++) {
         free(toBeDeleted->trail_perPlayer[i]);
     }
 
-    disposeMap(toBeDeleted->g);   
     disposeGameView(toBeDeleted->gameView);
     free(toBeDeleted->trail_perPlayer); 
-    free(toBeDeleted->lastTurnHealth);
-    free(toBeDeleted->health);
     free(toBeDeleted->numTrap);
     free(toBeDeleted->numIV);
     free(toBeDeleted);
@@ -372,6 +289,20 @@ void giveMeTheTrail(DracView currentView, PlayerID player,
     }
 }
 
+
+// Fill the trail array with location IDs and also special moves
+// if the player is Dracula (i.e: D1, HI, TP, ......)
+// ** Similar to the function giveMeTheTrail, but this function won't 
+//    return precise locations
+void giveMeTheMoves(DracView currentView, PlayerID player, LocationID trail[TRAIL_SIZE]) {
+    assert(currentView != NULL);
+    assert(player >= PLAYER_LORD_GODALMING && player <= PLAYER_DRACULA);
+    assert(trail != NULL);
+
+    getHistory(currentView->gameView, player, trail);
+}
+
+
 //// Functions that query the map to find information about connectivity
 
 // What are my (Dracula's) possible next moves (locations)
@@ -395,6 +326,11 @@ LocationID *whereCanIgo(DracView currentView, int *numLocations, int road, int s
     assert(dracTrail != NULL);
     getHistory(currentView->gameView, PLAYER_DRACULA, dracTrail);
 
+    int i = 0;
+    for(i = 0; i < TRAIL_SIZE; i++) {
+        if(dracTrail[i] == TELEPORT) dracTrail[i] = CASTLE_DRACULA;
+    }
+
     int counterA = 0;
     int counterB = 0;
     while(counterA < *numLocations) {
@@ -413,7 +349,7 @@ LocationID *whereCanIgo(DracView currentView, int *numLocations, int road, int s
         counterA++;
     }
 
-    assert(*numLocations >= 0);
+    assert(*numLocations >= 1);
     free(dracTrail);
     return connLoc;
 }
@@ -442,24 +378,18 @@ LocationID *whereCanTheyGo(DracView currentView, int *numLocations,
 }
 
 
-
 // *** Private Functions ***
 
 //check whether the given dracView is valid
 static void validDracView(DracView dracView) {
     assert(dracView != NULL);
-    assert(dracView->g != NULL);
     assert(dracView->gameView != NULL);
-    assert(dracView->lastTurnHealth != NULL);
-    assert(dracView->health != NULL);
     assert(dracView->numTrap != NULL);
     assert(dracView->numIV != NULL);
     assert(dracView->trail_perPlayer != NULL);
-    if(dracView->turn > 1) assert(dracView->ms != NULL);
 
     int i;
     for(i = 0; i < NUM_PLAYERS; i++) assert(dracView->trail_perPlayer[i] != NULL);
-
 }
 
 // Returns Id of current player
@@ -542,3 +472,5 @@ static void removeLocation(int *numLocations, LocationID *connLoc, LocationID v,
 
     *numLocations = *numLocations - 1;
 }
+
+

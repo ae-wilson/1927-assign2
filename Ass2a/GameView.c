@@ -15,11 +15,11 @@
 
 //ADT(s)
 struct gameView {
-   Map g;                        //The Map
-   int turn;                     //Turn number
-   int score;                    //The score of the game
-   int *lastTurnHealth;          //players' health in last turn
-   int *health;                  //players' health in this turn
+   Map g;                        // The Map
+   int turn;                     // Turn number
+   int score;                    // The score of the game
+   int *isKilledLastTurn;        // whether player is killed last turn
+   int *health;                  // players' health in this turn
    LocationID **trail_perPlayer; // stores trail for each player in 2D array
 }; 
 
@@ -53,8 +53,8 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
     assert(gameView != NULL);
     gameView->g = newMap();
     assert(gameView->g != NULL);
-    gameView->lastTurnHealth = malloc(NUM_PLAYERS * sizeof(int));
-    assert(gameView->lastTurnHealth != NULL);
+    gameView->isKilledLastTurn = malloc(NUM_PLAYERS * sizeof(int));
+    assert(gameView->isKilledLastTurn != NULL);
     gameView->health = malloc(NUM_PLAYERS * sizeof(int));
     assert(gameView->health != NULL);
     gameView->trail_perPlayer = malloc(NUM_PLAYERS * sizeof(LocationID *));
@@ -77,10 +77,10 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
 
     //The health of players at the beginning of the game
     for(i = 0; i < PLAYER_DRACULA; i++) {
-        gameView->lastTurnHealth[i] = GAME_START_HUNTER_LIFE_POINTS;
+        gameView->isKilledLastTurn[i] = FALSE;
         gameView->health[i] = GAME_START_HUNTER_LIFE_POINTS;
     }
-    gameView->lastTurnHealth[i] = GAME_START_BLOOD_POINTS;
+    gameView->isKilledLastTurn[i] = FALSE;
     gameView->health[i] = GAME_START_BLOOD_POINTS;    
 
     //Scanning through the pastPlays string to obtain necessary information
@@ -105,11 +105,8 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
 
                 //restore to 9 HP if the hunter was killed by Dracula in last turn
                 if(gameView->health[player] == 0) {
-                    gameView->lastTurnHealth[player] = 0;
                     gameView->health[player] = GAME_START_HUNTER_LIFE_POINTS;
-                } else {
-                    gameView->lastTurnHealth[player] = gameView->health[player];
-                }
+                } 
 
                 if(pastPlays[j] == '.') break;  //No more encounters --> exit the loop by break       
                 
@@ -147,8 +144,6 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
             //Immuture vampires become mature and game score will be reduced
             if(pastPlays[i+5] == 'V') gameView->score -= SCORE_LOSS_VAMPIRE_MATURES;
            
-            gameView->lastTurnHealth[player] = gameView->health[player];
-
             // Find where Dracula is (at an unknown/known sea, his castle, on land, ......)
             int pos = 0;
             LocationID currLoc = gameView->trail_perPlayer[player][0];
@@ -171,18 +166,18 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
 
             if(currLoc == TELEPORT) currLoc = CASTLE_DRACULA;
              
-
             if(currLoc == CASTLE_DRACULA) {
                 gameView->health[player] += LIFE_GAIN_CASTLE_DRACULA;    //gain HP as Dracula is in his castle
-            } else if(gameView->trail_perPlayer[player][0] >= MIN_MAP_LOCATION && gameView->trail_perPlayer[player][0] <= MAX_MAP_LOCATION) {
+            } else if(currLoc >= MIN_MAP_LOCATION && currLoc <= MAX_MAP_LOCATION) {
+
                 //lose 2 HP when Dracula is at the sea
-                if(idToType(gameView->trail_perPlayer[player][0]) == SEA) {
+                if(idToType(currLoc) == SEA) {
                     gameView->health[player] -= LIFE_LOSS_SEA;
                 } 
-            } else if(gameView->trail_perPlayer[player][0] == SEA_UNKNOWN) {
+            } else if(currLoc == SEA_UNKNOWN) {
                 gameView->health[player] -= LIFE_LOSS_SEA;
             }
-            
+ 
             //score - 1 when Dracula finishes his turn
             gameView->score -= SCORE_LOSS_DRACULA_TURN;    
         }
@@ -193,7 +188,7 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
     PlayerID currentPlayer = getCurrentPlayer(gameView);
     if(currentPlayer != PLAYER_DRACULA) {
         if(gameView->health[currentPlayer] == 0) {
-            gameView->lastTurnHealth[currentPlayer] = 0;
+            gameView->isKilledLastTurn[currentPlayer] = TRUE;
             gameView->health[currentPlayer] = GAME_START_HUNTER_LIFE_POINTS;
         }
     }
@@ -213,7 +208,7 @@ void disposeGameView(GameView toBeDeleted)
 
     disposeMap(toBeDeleted->g);
     free(toBeDeleted->trail_perPlayer); 
-    free(toBeDeleted->lastTurnHealth);
+    free(toBeDeleted->isKilledLastTurn);
     free(toBeDeleted->health);
     free(toBeDeleted);
 }
@@ -270,7 +265,7 @@ LocationID getLocation(GameView currentView, PlayerID player)
     } else {
         //if the current health or the health in last turn is ZERO, then the hunter must be in the hospital
         if(currentView->health[player] == 0) return ST_JOSEPH_AND_ST_MARYS;
-        if(currentView->lastTurnHealth[player] == 0) return ST_JOSEPH_AND_ST_MARYS;   
+        if(currentView->isKilledLastTurn[player] == TRUE) return ST_JOSEPH_AND_ST_MARYS;   
     }
 
     return currentView->trail_perPlayer[player][0];
@@ -327,11 +322,11 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
             if(road == TRUE) {
                 if(curr->type == ROAD && curr->v != ST_JOSEPH_AND_ST_MARYS) {
                     reachable[curr->v] = 1;
-					 }
+                }
             } 
             
             if(sea == TRUE) {
-				    if(curr->type == BOAT) reachable[curr->v] = 1;            
+                if(curr->type == BOAT) reachable[curr->v] = 1;            
             }
                 
             curr = curr->next;
@@ -388,7 +383,7 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
 static void validGameView(GameView gameView) {
     assert(gameView != NULL);
     assert(gameView->g != NULL);
-    assert(gameView->lastTurnHealth != NULL);
+    assert(gameView->isKilledLastTurn != NULL);
     assert(gameView->health != NULL);
     assert(gameView->trail_perPlayer != NULL);
 

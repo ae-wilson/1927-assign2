@@ -69,6 +69,8 @@ int main(int argc, char *argv[]) {
     getHistory(gv,PLAYER_DRACULA,history);
     assert(history[0] == DOUBLE_BACK_1);
     assert(history[1] == SEA_UNKNOWN);
+    printf("\nHealth of Dracula = %d\n", getHealth(gv, PLAYER_DRACULA));
+
     assert(getHealth(gv,PLAYER_DRACULA) == GAME_START_BLOOD_POINTS - 4);
     assert(getCurrentPlayer(gv) == 0);
     printf("passed\n");
