@@ -398,6 +398,7 @@ static LocationID awayFromHunters(DracView gameState) {
                 if(trail[i] != UNKNOWN_LOCATION) {
                     if(!occupied[trail[i]] && isLegalMove(gameState, DOUBLE_BACK_1 + i)) { 
                         move = DOUBLE_BACK_1 + i;
+                        break;
                     }
                 }
             }             
