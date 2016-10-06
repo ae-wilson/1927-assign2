@@ -16,7 +16,7 @@
 #define TRUE 1
 #define FALSE 0
 
-#define MIN_HEALTH 8
+#define MIN_HEALTH 14
 #define SAFE_DISTANCE 3
 
 // ***  Private Functions   ***
@@ -290,6 +290,9 @@ static LocationID backToCastle(DracView gameState) {
     int length = 0;
     LocationID *sPath = shortestPath(gameState, &length, curr, CASTLE_DRACULA, 1, 1);
 
+
+    LocationID move = UNKNOWN_LOCATION;
+
     if(length > 1) {
         assert(sPath != NULL);
         LocationID next = sPath[1];
@@ -297,7 +300,7 @@ static LocationID backToCastle(DracView gameState) {
         if(numHuntersThere(gameState, next) > 0) return awayFromHunters(gameState);
  
         if(isLegalMove(gameState, next) == TRUE) {
-            return next;
+            move = next;
         } else {
             LocationID trail[TRAIL_SIZE];
             giveMeTheTrail(gameState, PLAYER_DRACULA, trail);
@@ -316,15 +319,21 @@ static LocationID backToCastle(DracView gameState) {
                 assert(next >= DOUBLE_BACK_1 && next <= DOUBLE_BACK_5);
                 assert(isLegalMove(gameState, next) == TRUE);                   
            
-                return next;
+                move = next;
             } else {
-                return awayFromHunters(gameState);
+                move = awayFromHunters(gameState);
             }
 
         } 
     } else {
-        return awayFromHunters(gameState);
+        move = awayFromHunters(gameState);
     }
+
+    if(move == UNKNOWN_LOCATION) {
+        return randomMove(gameState);
+    }
+
+    return move;
 }
 
 // Determine move which will make Dracula moves away from hunters

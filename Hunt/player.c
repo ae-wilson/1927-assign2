@@ -64,6 +64,8 @@ int main(int argc, char *argv[])
    gameState = newDracView(plays,msgs);
    decideDraculaMove(gameState);
 
+
+
    printf("GameStat:\n");
    printf("Score: %d\n\n", giveMeTheScore(gameState)); 
 
