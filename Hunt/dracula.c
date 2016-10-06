@@ -23,6 +23,7 @@
 static int isLegalMove(DracView gameState, LocationID move);
 static int isFound(LocationID *array, LocationID location, int low, int high);
 static int isAdjacent(DracView gameState, LocationID location);
+static int hasDBInTrail(DracView gameState);
 static int numHuntersThere(DracView gameState, LocationID loc);
 
 static LocationID firstMove(DracView gameState);
@@ -112,13 +113,9 @@ static int isLegalMove(DracView gameState, LocationID move) {
  
     } else if(move >= DOUBLE_BACK_1 && move <= DOUBLE_BACK_5) {
         Round round = giveMeTheRound(gameState);
-        if(move - DOUBLE_BACK_1 >= round) return FALSE;
 
-        for(i = 0; i < TRAIL_SIZE - 1; i++) {
-            if(dracMoves[i] >= DOUBLE_BACK_1 && dracMoves[i] <= DOUBLE_BACK_5) {
-                return FALSE;
-            }
-        }
+        if(move - DOUBLE_BACK_1 >= round) return FALSE;
+        if(hasDBInTrail(gameState) == TRUE) return FALSE;
 
         int pos = move - DOUBLE_BACK_1;
         if(dracMoves[pos] == HIDE) pos++;
@@ -372,7 +369,41 @@ static LocationID awayFromHunters(DracView gameState) {
             move = safeLoc[0];
             assert(isLegalMove(gameState, move) == TRUE);
         }
-    } 
+    } else {
+        int hasDB = hasDBInTrail(gameState);
+        
+        if(hasDB != TRUE) {
+            LocationID trail[TRAIL_SIZE];
+            giveMeTheTrail(gameState, PLAYER_DRACULA, trail);
+
+            int hunter = 0;
+            int occupied[NUM_MAP_LOCATIONS];
+            
+            int i = 0;
+            for(i = 0; i < NUM_MAP_LOCATIONS; i++) occupied[i] = 0;
+
+            for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
+                int numLocations = 0;
+                LocationID *connLoc = whereCanTheyGo(gameState, &numLocations, hunter, 1, 1, 1);
+                assert(connLoc != NULL);
+
+                for(i = 0; i < numLocations; i++) {
+                    LocationID v = connLoc[i];
+                    occupied[v] = 1;
+                }
+                free(connLoc);
+            }
+
+            for(i = 0; i < TRAIL_SIZE - 1; i++) {
+                if(trail[i] != UNKNOWN_LOCATION) {
+                    if(!occupied[trail[i]] && isLegalMove(gameState, DOUBLE_BACK_1 + i)) { 
+                        move = DOUBLE_BACK_1 + i;
+                    }
+                }
+            }             
+        }
+
+    }
     free(safeLoc);
 
     if(move == UNKNOWN_LOCATION) move = randomMove(gameState);    
@@ -461,6 +492,26 @@ static int isAdjacent(DracView gameState, LocationID location) {
     free(adLoc);
     return TRUE;
 }
+
+
+static int hasDBInTrail(DracView gameState) {
+    assert(gameState != NULL);
+
+    LocationID dracMoves[TRAIL_SIZE];
+    
+    int i = 0;
+    for(i = 0; i < TRAIL_SIZE; i++) dracMoves[i] = UNKNOWN_LOCATION;
+    giveMeTheMoves(gameState, PLAYER_DRACULA, dracMoves);
+
+    for(i = 0; i < TRAIL_SIZE - 1; i++) {
+        if(dracMoves[i] >= DOUBLE_BACK_1 && dracMoves[i] <= DOUBLE_BACK_5) {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
 
 // Check how many hunters at the given location
 static int numHuntersThere(DracView gameState, LocationID loc) {
