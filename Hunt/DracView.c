@@ -378,6 +378,29 @@ LocationID *whereCanTheyGo(DracView currentView, int *numLocations,
 }
 
 
+LocationID *whereCanTheyGoNext(DracView currentView, int *numLocations,
+                           PlayerID player, int road, int rail, int sea)
+{
+    validDracView(currentView);
+    assert(numLocations != NULL);	// check that there are locations to visit
+    assert(player >= PLAYER_LORD_GODALMING && player <= PLAYER_DRACULA); 
+
+    // Use whereCanIgo if the player is Dracula
+    if(player == PLAYER_DRACULA) return whereCanIgo(currentView, numLocations, road, sea);
+
+    // need to find out the current location of the player (hunter)
+    LocationID there = whereIs(currentView, player);
+    assert(there >= MIN_MAP_LOCATION && there <= MAX_MAP_LOCATION);
+
+    // need to find out the current round
+    Round nextRound = giveMeTheRound(currentView) + 1;
+
+    // we will use the connectedLocations funciton in GameView.c to find
+    // all the possible locations which Dracula can visit
+    return connectedLocations(currentView->gameView, numLocations, there, player, nextRound, road, rail, sea);
+}
+
+
 LocationID *adjacentLocations(DracView currentView, int *numLocations) {
     validDracView(currentView);
     assert(numLocations != NULL);

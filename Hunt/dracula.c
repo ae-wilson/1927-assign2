@@ -157,7 +157,7 @@ static LocationID firstMove(DracView gameState) {
 
     for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
         int numLocations = 0;
-        LocationID *connLoc = whereCanTheyGo(gameState, &numLocations, hunter, 1, 1, 1);
+        LocationID *connLoc = whereCanTheyGoNext(gameState, &numLocations, hunter, 1, 1, 1);
         assert(connLoc != NULL);
 
         for(i = 0; i < numLocations; i++) {
@@ -354,26 +354,20 @@ static LocationID awayFromHunters(DracView gameState) {
         int loc = rand() % numSL;
  
         // Try not stay at the same place
-        if(safeLoc[loc] == whereIs(gameState, PLAYER_DRACULA)) {
-            if(isLegalMove(gameState, HIDE)) {
-                move = HIDE;
-            } else if(isLegalMove(gameState, DOUBLE_BACK_1)) {
-                move = DOUBLE_BACK_1;
-            } else { 
-                int i = 0;
-                int count = 0;
-                int random[NUM_MAP_LOCATIONS];
+        if(safeLoc[loc] == whereIs(gameState, PLAYER_DRACULA)) { 
+            int i = 0;
+            int count = 0;
+            int random[NUM_MAP_LOCATIONS];
 
-                for(i = 0; i < NUM_MAP_LOCATIONS; i++) random[i] = -1;
+            for(i = 0; i < NUM_MAP_LOCATIONS; i++) random[i] = -1;
 
-                for(i = 0; i < numSL; i++) {
-                    if(safeLoc[i] != whereIs(gameState, PLAYER_DRACULA)) random[count++] = safeLoc[i];
-                }
-
-                srand(time(NULL));
-                loc = rand() % count;
-                move = random[loc];
+            for(i = 0; i < numSL; i++) {
+                if(safeLoc[i] != whereIs(gameState, PLAYER_DRACULA)) random[count++] = safeLoc[i];
             }
+
+            srand(time(NULL));
+            loc = rand() % count;
+            move = random[loc];
         } else {
             move = safeLoc[loc];
         }
@@ -407,7 +401,7 @@ static LocationID awayFromHunters(DracView gameState) {
 
             for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
                 int numLocations = 0;
-                LocationID *connLoc = whereCanTheyGo(gameState, &numLocations, hunter, 1, 1, 1);
+                LocationID *connLoc = whereCanTheyGoNext(gameState, &numLocations, hunter, 1, 1, 1);
                 assert(connLoc != NULL);
 
                 for(i = 0; i < numLocations; i++) {
@@ -428,6 +422,12 @@ static LocationID awayFromHunters(DracView gameState) {
         }
 
     }
+
+    int i = 0;
+    printf("\n\nPossible Moves: \n");
+    for(i = 0; i < numSL; i++) printf("%s\n", idToName(safeLoc[i]));
+    printf("\n");
+
     free(safeLoc);
 
     if(move == UNKNOWN_LOCATION) move = randomMove(gameState);    
@@ -473,7 +473,7 @@ static LocationID *safeConnectedLocations(DracView gameState, int *numLocations,
     // safe spots
     for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
         int number = 0;
-        LocationID *link = whereCanTheyGo(gameState, &number, hunter, 1, 1, 0);
+        LocationID *link = whereCanTheyGoNext(gameState, &number, hunter, 1, 1, 1);
         assert(link != NULL);
         
         for(loc = 0; loc < number; loc++) {

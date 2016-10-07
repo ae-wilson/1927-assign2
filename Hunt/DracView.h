@@ -142,6 +142,10 @@ LocationID *whereCanTheyGo(DracView currentView, int *numLocations,
                            PlayerID player, int road, int rail, int sea);
 
 
+LocationID *whereCanTheyGoNext(DracView currentView, int *numLocations,
+                           PlayerID player, int road, int rail, int sea);
+
+
 LocationID *adjacentLocations(DracView currentView, int *numLocations);
 
 
