@@ -424,7 +424,7 @@ static LocationID awayFromHunters(DracView gameState) {
     }
 
     int i = 0;
-    printf("\n\nPossible Moves: \n");
+    printf("\n\nS Moves: \n");
     for(i = 0; i < numSL; i++) printf("%s\n", idToName(safeLoc[i]));
     printf("\n");
 
