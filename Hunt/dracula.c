@@ -23,6 +23,7 @@ static int isLegalMove(DracView gameState, LocationID move);
 static int isFound(LocationID *array, LocationID location, int low, int high);
 static int isAdjacent(DracView gameState, LocationID location);
 static int isSafeCastle(DracView gameState);
+static int isTrailRevealed(DracView gameState);
 static int hasDBInTrail(DracView gameState);
 static int numHuntersThere(DracView gameState, LocationID loc);
 
@@ -324,7 +325,7 @@ static LocationID backToCastle(DracView gameState) {
     }
 
     if(move == UNKNOWN_LOCATION) {
-        return randomMove(gameState);
+        move = randomMove(gameState);
     }
 
     return move;
@@ -592,6 +593,23 @@ static int isSafeCastle(DracView gameState) {
     free(sPath);
 
     return isSafe;
+}
+
+static int isTrailRevealed(DracView gameState) {
+    assert(gameState != NULL);
+
+    LocationID dracTrail[TRAIL_SIZE];
+    LocationID hunterTrail[TRAIL_SIZE];
+
+    int i = 0;
+    for(i = 0; i < TRAIL_SIZE; i++) { 
+        dracTrail[i] = UNKNOWN_LOCATION;
+        hunterTrail[i] = UNKNOWN_LOCATION;
+    }
+
+    giveMeTheTrail(gameState, PLAYER_DRACULA, dracTrail);
+
+    return FALSE;
 }
 
 // Selection Sort
