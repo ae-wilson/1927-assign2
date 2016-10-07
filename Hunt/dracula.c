@@ -23,19 +23,19 @@ static int isLegalMove(DracView gameState, LocationID move);
 static int isFound(LocationID *array, LocationID location, int low, int high);
 static int isAdjacent(DracView gameState, LocationID location);
 static int isSafeCastle(DracView gameState);
-static int isTrailRevealed(DracView gameState);
 static int hasDBInTrail(DracView gameState);
 static int numHuntersThere(DracView gameState, LocationID loc);
 
 static LocationID firstMove(DracView gameState);
 static LocationID BestMove(DracView gameState);
 static LocationID randomMove(DracView gameState);
+//static LocationID goToLandOrSea(DracView gameState);
 static LocationID backToCastle(DracView gameState);
 static LocationID awayFromHunters(DracView gameState);
 static LocationID *safeConnectedLocations(DracView gameState, int *numLocations, int road, int sea);
 
 static void sortLocIDArray(LocationID *array, int low, int high);
-static void idToAbbrev(LocationID move, char *abbrev);
+static void moveToAbbreviation(LocationID move, char *abbrev);
 
 
 // Function to decide the move of Dracula
@@ -60,7 +60,7 @@ void decideDraculaMove(DracView gameState) {
     char abbrev[2];
     for(i = 0; i <= 2; i++) abbrev[i] = '\0';
     if(move == UNKNOWN_LOCATION) move = TELEPORT;
-    idToAbbrev(move, abbrev);
+    moveToAbbreviation(move, abbrev);
 
     registerBestPlay(abbrev, "Dracula is coming");
 }
@@ -266,6 +266,34 @@ static LocationID randomMove(DracView gameState) {
  
     return move;
 }
+
+/*
+static LocationID goToLandOrSea(DracView gameState) {
+    assert(gameState != NULL);
+    assert(idToType(whereIs(gameState, PLAYER_DRACULA)) == SEA);
+
+    int numBM = 0;
+    LocationID *boatMoves = whereCanIgo(gameState, &numBM, 0, 1);
+
+
+    LocationID move = UNKNOWN_LOCATION;
+
+    if(numBM > 0) {
+        assert(boatMoves != NULL);
+
+        int i = 0;
+        int occupied[NUM_MAP_LOCATIONS];
+        for(i = 0; i < NUM_MAP_LOCATIONS; i++) occupied[i] = 0;
+
+
+    } else {
+        move = awayFromHunters(gameState);
+    }
+
+    return move;
+}
+*/
+
 
 // determine what to do next in order to go back to Dracula's castle
 static LocationID backToCastle(DracView gameState) {
@@ -595,22 +623,6 @@ static int isSafeCastle(DracView gameState) {
     return isSafe;
 }
 
-static int isTrailRevealed(DracView gameState) {
-    assert(gameState != NULL);
-
-    LocationID dracTrail[TRAIL_SIZE];
-    LocationID hunterTrail[TRAIL_SIZE];
-
-    int i = 0;
-    for(i = 0; i < TRAIL_SIZE; i++) { 
-        dracTrail[i] = UNKNOWN_LOCATION;
-        hunterTrail[i] = UNKNOWN_LOCATION;
-    }
-
-    giveMeTheTrail(gameState, PLAYER_DRACULA, dracTrail);
-
-    return FALSE;
-}
 
 // Selection Sort
 static void sortLocIDArray(LocationID *array, int low, int high) {
@@ -664,7 +676,7 @@ static int isFound(LocationID *array, LocationID location, int low, int high) {
 }
 
 // Function to turn the ID of given move to a two-character string
-static void idToAbbrev(LocationID move, char *abbrev) {
+static void moveToAbbreviation(LocationID move, char *abbrev) {
     assert((move >= MIN_MAP_LOCATION && move <= MAX_MAP_LOCATION) || (move >= HIDE && move <= TELEPORT));
     assert(abbrev != NULL);
 

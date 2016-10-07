@@ -28,7 +28,7 @@ static LocationID randomMove(HunterView gameState);
 static LocationID Rest(HunterView gameState);
 
 static void sortLocIDArray(LocationID *array, int low, int high);
-static void idToAbbrev(LocationID move, char *abbrev);
+static void moveToAbbreviation(LocationID move, char *abbrev);
 
 
 void decideHunterMove(HunterView gameState)
@@ -57,7 +57,7 @@ void decideHunterMove(HunterView gameState)
     char abbrev[2];
     int i = 0;
     for(i = 0; i < 2; i++) abbrev[i] = '\0';
-    idToAbbrev(move, abbrev);         
+    moveToAbbreviation(move, abbrev);         
 
     registerBestPlay(abbrev, "Hi Dracula, your death descends HAHA");
 }
@@ -209,7 +209,7 @@ static int isFound(LocationID *array, LocationID location, int low, int high) {
 
 
 // Convert the given move into a two-character string
-static void idToAbbrev(LocationID move, char *abbrev) {
+static void moveToAbbreviation(LocationID move, char *abbrev) {
     assert(move >= MIN_MAP_LOCATION && move <= MAX_MAP_LOCATION);
     assert(abbrev != NULL);
 

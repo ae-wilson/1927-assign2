@@ -1,5 +1,5 @@
 #!/bin/sh
 
 echo =====   Submitting the Assignment   =====
-give cs1927 ass2b Makefile dracula.c hunter.c GameView.c GameView.h DracView.c DracView.h HunterView.c HunterView.h Queue.c Queue.h
+give cs1927 ass2b Makefile dracula.c hunter.c GameView.c GameView.h DracView.c DracView.h HunterView.c HunterView.h Queue.c Queue.h Map.c Map.h Places.c Places.h
 echo Done!
