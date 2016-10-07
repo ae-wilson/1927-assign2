@@ -158,7 +158,7 @@ static LocationID firstMove(DracView gameState) {
 
     for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
         int numLocations = 0;
-        LocationID *connLoc = whereCanTheyGoNext(gameState, &numLocations, hunter, 1, 1, 1);
+        LocationID *connLoc = whereCanTheyGoNext(gameState, &numLocations, hunter, 1, 1, 0);
         assert(connLoc != NULL);
 
         for(i = 0; i < numLocations; i++) {
