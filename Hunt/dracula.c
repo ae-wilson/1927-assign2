@@ -359,8 +359,11 @@ static LocationID goToLandOrSea(DracView gameState) {
                     length = turnsReach;
                     fSea = seas[i];
                 }
+                
+                free(sPath);
             }
-        }  
+        } 
+ 
         free(seas);
 
 

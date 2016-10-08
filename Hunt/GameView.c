@@ -203,6 +203,7 @@ void disposeGameView(GameView toBeDeleted)
 
     int i = 0;
     for(i = 0; i < NUM_PLAYERS; i++) {
+        assert(toBeDeleted->trail_perPlayer[i] != NULL);
         free(toBeDeleted->trail_perPlayer[i]); 
     }
 

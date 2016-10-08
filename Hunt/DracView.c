@@ -203,6 +203,7 @@ void disposeDracView(DracView toBeDeleted)
 
     int i;
     for(i = 0; i < NUM_PLAYERS; i++) {
+        assert(toBeDeleted->trail_perPlayer[i] != NULL);
         free(toBeDeleted->trail_perPlayer[i]);
     }
 
