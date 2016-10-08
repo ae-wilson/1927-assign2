@@ -33,6 +33,7 @@ static LocationID firstMove(DracView gameState);
 static LocationID BestMove(DracView gameState);
 static LocationID randomMove(DracView gameState);
 static LocationID goToLandOrSea(DracView gameState);
+static LocationID goToSafeSea(DracView gameState);
 static LocationID backToCastle(DracView gameState);
 static LocationID awayFromHunters(DracView gameState);
 static LocationID *connectedSeas(DracView gameState, int *numSeas);
@@ -404,48 +405,29 @@ static LocationID goToLandOrSea(DracView gameState) {
 
             move = safePorts[index];
             assert(isLegalMove(gameState, move)); 
+        } else {
+            LocationID fSea = goToSafeSea(gameState);
+        
+            if(fSea != UNKNOWN_LOCATION) {
+                printf("\nUnable to land :( ......\n");
+                printf("Sea Travel again :( ......\n");
+
+                if(positionInTrail(gameState, fSea) == NOT_IN_TRAIL) {
+                    move = fSea; 
+                } else if(!hasDBInTrail(gameState)) {
+                    int pos = positionInTrail(gameState, fSea);
+                    move = DOUBLE_BACK_1 + pos;
+
+                    assert(isLegalMove(gameState, move));
+                }
+            }
         }
  
     } else {
-
-        // Find out all the connected seas (not including the sea where Dracula is currently at)
-        int numSeas = 0;
-        LocationID *seas = connectedSeas(gameState, &numSeas);
-        assert(seas != NULL);
-
-        // Try to find out the furthermost sea from hunters 
-        LocationID fSea = UNKNOWN_LOCATION;
-        int length = 0;
-        int i = 0;
-        int hunter = 0;
-
-        for(i = 0; i < numSeas; i++) {
-            for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
-                if(whereIs(gameState, hunter) == whereIs(gameState, PLAYER_DRACULA)) continue;
-
-                int turnsReach = 0;
-                LocationID *sPath = sPathForHunters(gameState, &turnsReach, hunter, whereIs(gameState, hunter),
-                                                    seas[i], 1, 1, 1);
-
-                // There must be a shortest path for hunters
-                assert(sPath != NULL);            
-
-                // Keep track of where the furthermost sea is
-                if(turnsReach > length) {
-                    length = turnsReach;
-                    fSea = seas[i];
-                }
-                
-                free(sPath);
-            }
-        } 
- 
-        free(seas);
-
-
+        LocationID fSea = goToSafeSea(gameState);
+        
         if(fSea != UNKNOWN_LOCATION) {
-
-            printf("\nSea Travels again :( ......\n");
+            printf("\nSea Travel again :( ......\n");
 
             if(positionInTrail(gameState, fSea) == NOT_IN_TRAIL) {
                 move = fSea; 
@@ -464,6 +446,52 @@ static LocationID goToLandOrSea(DracView gameState) {
     return move;
 }
 
+// Function which returns the furthermost connected sea 
+// Note: will not consider the sea where Dracula is currently at
+static LocationID goToSafeSea(DracView gameState) {
+    assert(gameState != NULL);
+
+    // Find out all the connected seas (not including the sea where Dracula is currently at)
+    int numSeas = 0;
+    LocationID *seas = connectedSeas(gameState, &numSeas);
+    assert(seas != NULL);
+
+    // Try to find out the furthermost sea from hunters 
+    LocationID fSea = UNKNOWN_LOCATION;
+    int i = 0;
+    int length = 0;
+    int hunter = 0;
+    int distFromH = 999;
+
+    for(i = 0; i < numSeas; i++) {
+        for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
+            if(whereIs(gameState, hunter) == whereIs(gameState, PLAYER_DRACULA)) continue;
+            
+            int turnsReach = 0;
+            LocationID *sPath = sPathForHunters(gameState, &turnsReach, hunter, whereIs(gameState, hunter),
+                                                    seas[i], 1, 1, 1);
+
+            // There must be a shortest path for hunters
+            assert(sPath != NULL);            
+
+            // Keep track of where the furthermost sea is
+            if(turnsReach < distFromH) {
+                distFromH = turnsReach;
+            }
+                
+            free(sPath);
+        }
+
+        if(distFromH > length) {
+            length = distFromH;
+            fSea = seas[i];
+        }
+    } 
+ 
+    free(seas);
+
+    return fSea;
+}
 
 
 // Find the connected seas which are connected to Dracula's current location (Loc = a sea)
