@@ -74,8 +74,12 @@ int main(int argc, char *argv[])
    for(player = 0; player <= PLAYER_DRACULA; player++) {
       printf("Player %d:\n", player);
       printf("Life Points: %d\n", howHealthyIs(gameState, player));
-      printf("Current Location: %s\n", location(whereIs(gameState, player)));
         
+      char *currLoc = location(whereIs(gameState, player));
+      assert(currLoc != NULL);
+
+      printf("Current Location: %s\n", currLoc);
+      free(currLoc);
 
       LocationID trail[TRAIL_SIZE];
       giveMeTheTrail(gameState, player, trail);
@@ -83,10 +87,15 @@ int main(int argc, char *argv[])
       printf("Trail: ");
       int j = 0;
       for(j = 0; j < TRAIL_SIZE; j++) {
-         printf("%s", location(trail[j]));
+         char *place = location(trail[j]);
+         assert(place != NULL);
+
+         printf("%s", place);
+         free(place);
 
          if(j + 1 < TRAIL_SIZE) printf("--->");
       }
+      
 
       printf("\n");
       
@@ -94,8 +103,12 @@ int main(int argc, char *argv[])
       giveMeTheMoves(gameState, player, moves);
 
       printf("Moves: ");
-      for(j = 0; j < TRAIL_SIZE; j++) { 
-         printf("%s", location(moves[j]));
+      for(j = 0; j < TRAIL_SIZE; j++) {
+         char *place = location(moves[j]);
+         assert(place != NULL);
+ 
+         printf("%s", place);
+         free(place);
 
          if(j + 1 < TRAIL_SIZE) printf("--->");
       }
@@ -126,7 +139,13 @@ int main(int argc, char *argv[])
    disposeHunterView(gameState);
 #endif 
    printf("Move: %s, Message: %s\n", latestPlay, latestMessage);
-   printf("\nDummy: %s\n", location(CASTLE_DRACULA));
+  
+   char *dummy = location(CASTLE_DRACULA);
+   assert(dummy != NULL);
+
+   printf("\nDummy: %s\n", dummy);
+   free(dummy);
+
    return EXIT_SUCCESS;
 }
 
