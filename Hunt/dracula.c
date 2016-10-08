@@ -448,9 +448,11 @@ static LocationID goToLandOrSea(DracView gameState) {
 
             if(positionInTrail(gameState, fSea) == NOT_IN_TRAIL) {
                 move = fSea; 
-            } else {
+            } else if(!hasDBInTrail(gameState)) {
                 int pos = positionInTrail(gameState, fSea);
                 move = DOUBLE_BACK_1 + pos;
+
+                printf("move = %d\n", move);
 
                 assert(isLegalMove(gameState, move));
             }
