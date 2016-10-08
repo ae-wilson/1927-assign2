@@ -16,6 +16,7 @@
 #define TRUE 1
 #define FALSE 0
 
+#define NOT_IN_TRAIL -1
 #define SAFE_DISTANCE 3
 
 // ***  Private Functions   ***
@@ -23,15 +24,19 @@ static int isLegalMove(DracView gameState, LocationID move);
 static int isFound(LocationID *array, LocationID location, int low, int high);
 static int isAdjacent(DracView gameState, LocationID location);
 static int isSafeCastle(DracView gameState);
+static int isAtTheSameSea(DracView gameState);
 static int hasDBInTrail(DracView gameState);
+static int positionInTrail(DracView gameState, LocationID location);
 static int numHuntersThere(DracView gameState, LocationID loc);
 
 static LocationID firstMove(DracView gameState);
 static LocationID BestMove(DracView gameState);
 static LocationID randomMove(DracView gameState);
-//static LocationID goToLandOrSea(DracView gameState);
+static LocationID goToLandOrSea(DracView gameState);
 static LocationID backToCastle(DracView gameState);
 static LocationID awayFromHunters(DracView gameState);
+static LocationID *connectedSeas(DracView gameState, int *numSeas);
+static LocationID *connectedPorts(DracView gameState, int *numPorts);
 static LocationID *safeConnectedLocations(DracView gameState, int *numLocations, int road, int sea);
 
 static void sortLocIDArray(LocationID *array, int low, int high);
@@ -79,7 +84,9 @@ static int isLegalMove(DracView gameState, LocationID move) {
     }
    
     if(giveMeTheRound(gameState) == 0) {
-        if(move != ST_JOSEPH_AND_ST_MARYS) return TRUE;
+        if(move != ST_JOSEPH_AND_ST_MARYS && (move >= MIN_MAP_LOCATION && move <= MAX_MAP_LOCATION)) {
+            return TRUE;
+        }
     }
 
  
@@ -193,12 +200,16 @@ static LocationID BestMove(DracView gameState) {
 
     LocationID move = UNKNOWN_LOCATION;   
  
-    if(isSafeCastle(gameState)) {
-        move = backToCastle(gameState);
+    if(idToType(whereIs(gameState, PLAYER_DRACULA)) == SEA) { 
+        move = goToLandOrSea(gameState);
     } else {
-        move = awayFromHunters(gameState);
-    }
-   
+        if(isSafeCastle(gameState)) {
+            move = backToCastle(gameState);
+        } else {
+            move = awayFromHunters(gameState);
+        }
+    }   
+
     if(move == UNKNOWN_LOCATION) move = randomMove(gameState);
     
     return move;
@@ -267,32 +278,206 @@ static LocationID randomMove(DracView gameState) {
     return move;
 }
 
-/*
+
 static LocationID goToLandOrSea(DracView gameState) {
     assert(gameState != NULL);
     assert(idToType(whereIs(gameState, PLAYER_DRACULA)) == SEA);
 
-    int numBM = 0;
-    LocationID *boatMoves = whereCanIgo(gameState, &numBM, 0, 1);
-
-
     LocationID move = UNKNOWN_LOCATION;
+    
+    if(!isAtTheSameSea(gameState)) {
 
-    if(numBM > 0) {
-        assert(boatMoves != NULL);
+        // Landing / Go to port cities
+        int numPorts = 0;
+        LocationID *ports = connectedPorts(gameState, &numPorts);
+        assert(ports != NULL);
 
-        int i = 0;
         int occupied[NUM_MAP_LOCATIONS];
+        int i = 0;
         for(i = 0; i < NUM_MAP_LOCATIONS; i++) occupied[i] = 0;
 
+        int hunter = 0;
+        for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
+            int numLocations = 0;
+            LocationID *connLoc = whereCanTheyGoNext(gameState, &numLocations, hunter,
+                                                 1, 1, 1);
+            assert(connLoc != NULL);
 
+            for(i = 0; i < numLocations; i++) {
+                LocationID v = connLoc[i];
+                occupied[v] = 1;
+            }
+            free(connLoc);
+        }       
+
+
+        int numSP = 0;
+        LocationID safePorts[NUM_MAP_LOCATIONS];
+
+        for(i = 0; i < numPorts; i++) {
+            LocationID p = ports[i];
+
+            if(!occupied[p]) safePorts[numSP++] = p;
+        }
+        free(ports);       
+ 
+        if(numSP > 0) {
+            srand(time(NULL));    
+            int index = rand() % numSP;
+
+            move = safePorts[index];
+            assert(isLegalMove(gameState, move)); 
+        }
+ 
     } else {
-        move = awayFromHunters(gameState);
-    }
+
+        int numSeas = 0;
+        LocationID *seas = connectedSeas(gameState, &numSeas);
+        assert(seas != NULL);
+
+        // Furthermost sea from hunters 
+        LocationID fSea = UNKNOWN_LOCATION;
+        int length = 0;
+
+
+        int i = 0;
+        int hunter = 0;
+
+        for(i = 0; i < numSeas; i++) {
+            for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
+                if(whereIs(gameState, hunter) == whereIs(gameState, PLAYER_DRACULA)) continue;
+
+                int turnsReach = 0;
+                LocationID *sPath = sPathForHunters(gameState, &turnsReach, hunter, whereIs(gameState, hunter),
+                                                    seas[i], 1, 1, 1);
+
+                // There must be a shortest path for hunters
+                assert(sPath != NULL);            
+
+                // Keep track of where the furthermost sea is
+                if(turnsReach > length) {
+                    length = turnsReach;
+                    fSea = seas[i];
+                }
+            }
+        }  
+        free(seas);
+
+
+        if(fSea != UNKNOWN_LOCATION) {
+            if(positionInTrail(gameState, fSea) == NOT_IN_TRAIL) {
+                move = fSea; 
+            } else {
+                int pos = positionInTrail(gameState, fSea);
+                move = DOUBLE_BACK_1 + pos;
+
+                assert(isLegalMove(gameState, move));
+            }
+        }
+
+    }               
+ 
+    if(move == UNKNOWN_LOCATION) move = awayFromHunters(gameState);
 
     return move;
 }
-*/
+
+
+
+// Find the connected seas which are connected to Dracula's current location (Loc = a sea)
+static LocationID *connectedSeas(DracView gameState, int *numSeas) {
+    assert(gameState != NULL);
+    assert(numSeas != NULL);
+    
+    int numLocations = 0;
+    LocationID *connLoc = whereCanIgo(gameState, &numLocations, 0, 1);
+    assert(connLoc != NULL);
+    
+
+    int number = 0;
+    LocationID *seas = malloc(NUM_MAP_LOCATIONS * sizeof(LocationID));
+    assert(seas != NULL);
+
+    int i = 0;
+    for(i = 0; i < numLocations; i++) {
+        LocationID v = connLoc[i];
+
+        if(idToType(v) == SEA) {
+            seas[number++] = v;
+        }
+    } 
+    free(connLoc);
+
+
+    if(!hasDBInTrail(gameState)) {
+        LocationID dracTrail[TRAIL_SIZE];
+        for(i = 0; i < TRAIL_SIZE; i++) {
+            dracTrail[i] = UNKNOWN_LOCATION;
+        }
+        giveMeTheTrail(gameState, PLAYER_DRACULA, dracTrail);
+
+        for(i = 1; i < TRAIL_SIZE - 1; i++) {
+            LocationID v = dracTrail[i];
+
+            if(v != UNKNOWN_LOCATION) {
+                if(isAdjacent(gameState, v) && idToType(v) == SEA) {
+                    seas[number++] = v;
+                } 
+            }
+        }
+    }
+
+
+
+    *numSeas = number;
+    return seas;
+}
+
+static LocationID *connectedPorts(DracView gameState, int *numPorts) {
+    assert(gameState != NULL);
+    assert(numPorts != NULL);
+
+    int numLocations = 0;
+    LocationID *connLoc = whereCanIgo(gameState, &numLocations, 0, 1);
+    assert(connLoc != NULL);
+
+ 
+    int number = 0;
+    LocationID *ports = malloc(NUM_MAP_LOCATIONS * sizeof(LocationID));
+    assert(ports != NULL);
+
+    int i = 0;
+    for(i = 0; i < numLocations; i++) {
+        LocationID v = connLoc[i];
+
+        if(idToType(v) == LAND) {
+            ports[number++] = v;
+        }
+    } 
+    free(connLoc);
+
+    
+    *numPorts = number;
+    return ports;
+}
+
+static int isAtTheSameSea(DracView gameState) {
+    assert(gameState != NULL);
+    assert(idToType(whereIs(gameState, PLAYER_DRACULA)) == SEA);
+
+    int isSameSea = FALSE;
+        
+    int hunter = 0;
+    for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
+        if(whereIs(gameState, PLAYER_DRACULA) == whereIs(gameState, hunter)) {
+            isSameSea = TRUE;
+            break;
+        }
+    }
+
+    return isSameSea;
+}
+
 
 
 // determine what to do next in order to go back to Dracula's castle
@@ -328,16 +513,9 @@ static LocationID backToCastle(DracView gameState) {
             LocationID trail[TRAIL_SIZE];
             giveMeTheTrail(gameState, PLAYER_DRACULA, trail);
 
-            int i = 0;
-            int DBackPos = -1;
-            for(i = 0; i < TRAIL_SIZE - 1; i++) {
-                if(trail[i] == next) {
-                    DBackPos = i;
-                    break;
-                }
-            }
+            int DBackPos = positionInTrail(gameState, next);
 
-            if(DBackPos != -1) {
+            if(DBackPos != NOT_IN_TRAIL) {
                 next = DOUBLE_BACK_1 + DBackPos;
                 assert(next >= DOUBLE_BACK_1 && next <= DOUBLE_BACK_5);
                 assert(isLegalMove(gameState, next) == TRUE);                   
@@ -346,11 +524,14 @@ static LocationID backToCastle(DracView gameState) {
             } else {
                 move = awayFromHunters(gameState);
             }
-
+              
+            free(sPath);
         } 
     } else {
         move = awayFromHunters(gameState);
     }
+
+    printf("\n--> Castle\n");
 
     if(move == UNKNOWN_LOCATION) {
         move = randomMove(gameState);
@@ -621,6 +802,24 @@ static int isSafeCastle(DracView gameState) {
     free(sPath);
 
     return isSafe;
+}
+
+static int positionInTrail(DracView gameState, LocationID location) {
+    assert(gameState != NULL);
+    
+    LocationID trail[TRAIL_SIZE];
+    int i = 0;
+    for(i = 0; i < TRAIL_SIZE; i++) trail[i] = UNKNOWN_LOCATION;
+    giveMeTheTrail(gameState, PLAYER_DRACULA, trail);
+
+    for(i = 0; i < TRAIL_SIZE - 1; i++) {
+        if(trail[i] != UNKNOWN_LOCATION && trail[i] == location) {
+            return i;
+        }
+    }
+
+
+    return NOT_IN_TRAIL;
 }
 
 

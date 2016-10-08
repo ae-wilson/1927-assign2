@@ -589,7 +589,7 @@ LocationID *sPathForHunters(DracView currentView, int *length, PlayerID player, 
     enterQueue(qList[0], start);
 
 
-    Round round = giveMeTheRound(currentView);
+    Round nextRound = giveMeTheRound(currentView) + 1;
 
     for(i = 0; i < NUM_MAP_LOCATIONS; i++) {
         while(!emptyQueue(qList[i])) {
@@ -600,7 +600,7 @@ LocationID *sPathForHunters(DracView currentView, int *length, PlayerID player, 
 
             int numLocations = 0;
             LocationID *connLoc = connectedLocations(currentView->gameView, &numLocations,
-                                                     s, player, round + i, road, rail, sea);
+                                                    s, player, nextRound + i, road, rail, sea);
             assert(connLoc != NULL);
              
             int j = 0;
