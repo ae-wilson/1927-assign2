@@ -531,7 +531,6 @@ static LocationID backToCastle(DracView gameState) {
         move = awayFromHunters(gameState);
     }
 
-    printf("\n--> Castle\n");
 
     if(move == UNKNOWN_LOCATION) {
         move = randomMove(gameState);
