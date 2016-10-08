@@ -325,6 +325,8 @@ static LocationID goToLandOrSea(DracView gameState) {
             srand(time(NULL));    
             int index = rand() % numSP;
 
+            printf("\nLanding ......\n");
+
             move = safePorts[index];
             assert(isLegalMove(gameState, move)); 
         }
@@ -368,6 +370,8 @@ static LocationID goToLandOrSea(DracView gameState) {
 
 
         if(fSea != UNKNOWN_LOCATION) {
+            printf("\nSea Travel ......\n");
+
             if(positionInTrail(gameState, fSea) == NOT_IN_TRAIL) {
                 move = fSea; 
             } else {
@@ -429,7 +433,6 @@ static LocationID *connectedSeas(DracView gameState, int *numSeas) {
             }
         }
     }
-
 
 
     *numSeas = number;
@@ -511,6 +514,8 @@ static LocationID backToCastle(DracView gameState) {
         if(numHuntersThere(gameState, next) > 0) return awayFromHunters(gameState);
  
         if(isLegalMove(gameState, next) == TRUE) {
+            printf("\n--> Castle Dracula\n");
+
             move = next;
         } else {
             LocationID trail[TRAIL_SIZE];
@@ -522,7 +527,9 @@ static LocationID backToCastle(DracView gameState) {
                 next = DOUBLE_BACK_1 + DBackPos;
                 assert(next >= DOUBLE_BACK_1 && next <= DOUBLE_BACK_5);
                 assert(isLegalMove(gameState, next) == TRUE);                   
-           
+          
+                printf("\n--> Castle Dracula\n");
+
                 move = next;
             } else {
                 move = awayFromHunters(gameState);
@@ -635,6 +642,14 @@ static LocationID awayFromHunters(DracView gameState) {
 
     }
 
+
+    printf("\nS Moves:\n");
+    
+    int i = 0;
+    for(i = 0; i < numSL; i++) {
+        printf("%s\n", idToName(safeLoc[i]));
+    }
+    printf("\n");
 
     free(safeLoc);
 
