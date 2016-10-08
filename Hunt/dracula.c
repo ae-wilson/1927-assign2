@@ -183,7 +183,7 @@ static LocationID firstMove(DracView gameState) {
     // start at a city where hunters cannot reach next turn
     for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
         int numLocations = 0;
-        LocationID *connLoc = whereHuntersCanGoNext(gameState, &numLocations, hunter, 1, 1, 0);
+        LocationID *connLoc = whereHuntersCanGoNext(gameState, &numLocations, hunter, 1, 1, 1);
  
         if(numLocations > 0) assert(connLoc != NULL);
 
@@ -202,9 +202,9 @@ static LocationID firstMove(DracView gameState) {
    
     int loc = 0;
     for(loc = 0; loc < NUM_MAP_LOCATIONS; loc++) {
-        if(!occupied[loc]) unoccupied[count++] = loc;
+        if(!occupied[loc] && idToType(loc) != SEA) unoccupied[count++] = loc;
     } 
-    assert(count != 0);
+    assert(count > 0);
 
     srand(time(NULL));
     int index = rand() % count;
