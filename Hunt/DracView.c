@@ -379,12 +379,13 @@ LocationID *whereCanTheyGo(DracView currentView, int *numLocations,
 }
 
 
-LocationID *whereCanTheyGoNext(DracView currentView, int *numLocations,
+// Find out where hunters (no Dracula) can go in their next round
+LocationID *whereHuntersCanGoNext(DracView currentView, int *numLocations,
                            PlayerID player, int road, int rail, int sea)
 {
     validDracView(currentView);
     assert(numLocations != NULL);	// check that there are locations to visit
-    assert(player >= PLAYER_LORD_GODALMING && player <= PLAYER_DRACULA); 
+    assert(player >= PLAYER_LORD_GODALMING && player <= PLAYER_MINA_HARKER); 
 
     // Use whereCanIgo if the player is Dracula
     if(player == PLAYER_DRACULA) return whereCanIgo(currentView, numLocations, road, sea);
@@ -401,7 +402,7 @@ LocationID *whereCanTheyGoNext(DracView currentView, int *numLocations,
     return connectedLocations(currentView->gameView, numLocations, there, player, nextRound, road, rail, sea);
 }
 
-
+// Find out all the adjacent locations connected to Draculas current location
 LocationID *adjacentLocations(DracView currentView, int *numLocations) {
     validDracView(currentView);
     assert(numLocations != NULL);
@@ -412,6 +413,7 @@ LocationID *adjacentLocations(DracView currentView, int *numLocations) {
     
 }
 
+// For Dracula: Find out the shortest path from start to end
 LocationID *shortestPath(DracView currentView, int *length, LocationID start, LocationID end, 
                          int road, int sea)
 {
@@ -542,6 +544,7 @@ LocationID *shortestPath(DracView currentView, int *length, LocationID start, Lo
 }
 
 
+// For Hunters: Find out the shortest path from start to end
 LocationID *sPathForHunters(DracView currentView, int *length, PlayerID player, LocationID start, LocationID end,
                          int road, int rail, int sea) 
 {

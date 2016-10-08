@@ -142,16 +142,20 @@ LocationID *whereCanTheyGo(DracView currentView, int *numLocations,
                            PlayerID player, int road, int rail, int sea);
 
 
-LocationID *whereCanTheyGoNext(DracView currentView, int *numLocations,
+// Find out where hunters (no Dracula) can go in their next round
+LocationID *whereHuntersCanGoNext(DracView currentView, int *numLocations,
                            PlayerID player, int road, int rail, int sea);
 
 
+// Use connectLocations Function to find out all the adjacent locations
 LocationID *adjacentLocations(DracView currentView, int *numLocations);
 
 
+// For Dracula: Find out the shortest path from start to end
 LocationID *shortestPath(DracView currentView, int *length, LocationID start, LocationID end, 
                          int road, int sea);
 
+// For Hunters: Find out the shortest path from start to end
 LocationID *sPathForHunters(DracView currentView, int *length, PlayerID player, LocationID start, LocationID end,
                             int road, int rail, int sea); 
 
