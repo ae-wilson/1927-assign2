@@ -68,7 +68,8 @@ int main(int argc, char *argv[])
 
 
    printf("GameStat:\n");
-   printf("Score: %d\n\n", giveMeTheScore(gameState)); 
+   printf("Score: %d\n", giveMeTheScore(gameState)); 
+   printf("Round: %d\n\n", giveMeTheRound(gameState));
 
    int player = 0;
    for(player = 0; player <= PLAYER_DRACULA; player++) {

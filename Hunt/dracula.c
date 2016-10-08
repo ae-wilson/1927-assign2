@@ -408,7 +408,7 @@ static LocationID goToLandOrSea(DracView gameState) {
  
     } else {
 
-        // Find out all the connected seas (including the sea that Dracula is currently located at)
+        // Find out all the connected seas (not including the sea where Dracula is currently at)
         int numSeas = 0;
         LocationID *seas = connectedSeas(gameState, &numSeas);
         assert(seas != NULL);
@@ -444,6 +444,7 @@ static LocationID goToLandOrSea(DracView gameState) {
 
 
         if(fSea != UNKNOWN_LOCATION) {
+
             printf("\nSea Travels again :( ......\n");
 
             if(positionInTrail(gameState, fSea) == NOT_IN_TRAIL) {
@@ -451,8 +452,6 @@ static LocationID goToLandOrSea(DracView gameState) {
             } else if(!hasDBInTrail(gameState)) {
                 int pos = positionInTrail(gameState, fSea);
                 move = DOUBLE_BACK_1 + pos;
-
-                printf("move = %d\n", move);
 
                 assert(isLegalMove(gameState, move));
             }
@@ -470,6 +469,8 @@ static LocationID goToLandOrSea(DracView gameState) {
 // Find the connected seas which are connected to Dracula's current location (Loc = a sea)
 // Note: if there is no Double Back in the trail, then all the adjacent seas in the trail will
 //       be considered
+//       
+//       The sea where dracula is at wont be included
 static LocationID *connectedSeas(DracView gameState, int *numSeas) {
     assert(gameState != NULL);
     assert(numSeas != NULL);
@@ -487,7 +488,7 @@ static LocationID *connectedSeas(DracView gameState, int *numSeas) {
     for(i = 0; i < numLocations; i++) {
         LocationID v = connLoc[i];
 
-        if(idToType(v) == SEA) {
+        if(idToType(v) == SEA && v != whereIs(gameState, PLAYER_DRACULA)) {
             seas[number++] = v;
         }
     } 
@@ -501,10 +502,10 @@ static LocationID *connectedSeas(DracView gameState, int *numSeas) {
         }
         giveMeTheTrail(gameState, PLAYER_DRACULA, dracTrail);
 
-        for(i = 1; i < TRAIL_SIZE - 1; i++) {
+        for(i = 0; i < TRAIL_SIZE - 1; i++) {
             LocationID v = dracTrail[i];
 
-            if(v != UNKNOWN_LOCATION) {
+            if(v != UNKNOWN_LOCATION && v != whereIs(gameState, PLAYER_DRACULA)) {
                 if(isAdjacent(gameState, v) && idToType(v) == SEA) {
                     seas[number++] = v;
                 } 
@@ -794,7 +795,7 @@ static LocationID *safeConnectedLocations(DracView gameState, int *numLocations,
     // safe spots
     for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
         int number = 0;
-        LocationID *link = whereHuntersCanGoNext(gameState, &number, hunter, 1, 1, 1);
+        LocationID *link = whereHuntersCanGoNext(gameState, &number, hunter, 1, 1, 0);
         assert(link != NULL);
         
         for(loc = 0; loc < number; loc++) {
