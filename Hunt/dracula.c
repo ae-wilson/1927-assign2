@@ -47,6 +47,8 @@ static void moveToAbbreviation(LocationID move, char *abbrev);
 void decideDraculaMove(DracView gameState) {
     assert(gameState != NULL);
 
+    printf("\n");
+
     int i = 0;
     Round round = giveMeTheRound(gameState); 
     LocationID move = UNKNOWN_LOCATION;
