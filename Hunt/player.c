@@ -54,8 +54,7 @@ int main(int argc, char *argv[])
 #ifdef I_AM_DRACULA
    DracView gameState;
 
-   char *plays = "GKL.... SBR.... HMR.... MMS.... DZA.V.. GSZ.... SLI.... HBO.... MTS.... DSJT... GBD.... SHA.... HBB.... MRO.... DVAT... GSZ.... SNS.... HSN.... MNP.... DSAT... GZAV... SHA.... HMA.... MRO.... DSOT... GSZ.... SBR.... HSR.... MTS.... DVRT... GSZ.... SBR.... HSR.... MTS.... DBS.... GCN.... SHA.... HBO.... MMS.... DIO..M. GVRT... SBR.... HPA.... MAO.... DVAT.M. GSOT... SVI.... HST.... MMS.... DATT.M. GBE.... SBC.... HMU.... MTS.... DHIT... GSZ.... SSO.... HZA.... MIO...."; 
-
+   char *plays = "GPA.... SMI.... HMN.... MSZ.... DBC.V.. GGE.... SZU.... HLV.... MZA.... DCNT... GCF.... SMU.... HSW.... MBD.... DVRT... GMR.... SNU.... HIR.... MKL.... DSOT... GTO.... SLI.... HDU.... MGA.... DBET... GBA.... SHA.... HGW.... MBCV... DSJT... GMS.... SVI.... HAO.... MBET... DVAT... GTS.... SBD.... HMS.... MBC.... DSAT.M. GIO.... SKL.... HTS.... MSOT... DHIT.M. GVAT... SBE.... HIO.... MSO....";
 
    PlayerMessage msgs[1850];
 
