@@ -54,7 +54,8 @@ int main(int argc, char *argv[])
 #ifdef I_AM_DRACULA
    DracView gameState;
 
-   char *plays = "GCD.... SLS.... HEC.... MBR.... DNA.V.. GGA.... SCA.... HPL.... MLI.... DCFT... GCN.... SMA.... HLO.... MCO.... DMRT... GVR.... SGR.... HSW.... MFR.... DGOT... GSO.... SAL.... HIR.... MNU.... DMIT... GSA.... SBA.... HDU.... MMU.... DD2T... GVA.... SBO.... HIR.... MVE.... DTS..V. GSJ.... SCFT... HAO.... MFL.... DCGT... GZA.... SCF.... HBB.... MGE.... DHIT.M. GMU.... SCF.... HBO.... MCF.... DMS..M. GMIT... SGE.... HCF.... MGE.... DALT... GMI.... SMR.... HGE.... MMI.... DMAT.M. GMI.... SMI.... HMI.... MMI.... DSNT... GMI.... SMI.... HMI.... MGO.... DLS.VM. GGO.... SGO.... HGO.... MTS.... DCAT.M. GTS.... STS.... HTS.... MCG.... DGRT... GCG.... SCG.... HCG.... MCG.... DALT.M. GCG.... SCG.... HCG.... MMS.... DMAT.M. GMS.... SMS.... HMS.... MALT... DD4T.M. GAL.... SAL.... HAL.... MAL.... DHIT.V. GAL.... SAL.... HAL.... MAL.... DCAT.M. GAL.... SAL.... HAL.... MAL....";
+   char *plays = "GKL.... SBR.... HMR.... MMS.... DZA.V.. GSZ.... SLI.... HBO.... MTS.... DSJT... GBD.... SHA.... HBB.... MRO.... DVAT... GSZ.... SNS.... HSN.... MNP.... DSAT... GZAV... SHA.... HMA.... MRO.... DSOT... GSZ.... SBR.... HSR.... MTS.... DVRT... GSZ.... SBR.... HSR.... MTS.... DBS.... GCN.... SHA.... HBO.... MMS.... DIO..M. GVRT... SBR.... HPA.... MAO.... DVAT.M. GSOT... SVI.... HST.... MMS.... DATT.M. GBE.... SBC.... HMU.... MTS.... DHIT... GSZ.... SSO.... HZA.... MIO...."; 
+
 
    PlayerMessage msgs[1850];
 
