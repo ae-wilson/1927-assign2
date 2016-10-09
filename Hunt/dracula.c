@@ -833,6 +833,8 @@ static LocationID *safeConnectedLocations(DracView gameState, int *numLocations,
         
         for(loc = 0; loc < number; loc++) {
             LocationID v = link[loc];
+            if(idToType(v) == SEA) continue;
+
             assert(v >= MIN_MAP_LOCATION && v <= MAX_MAP_LOCATION);
 
             reachable[v] = 0;
