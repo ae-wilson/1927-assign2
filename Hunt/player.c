@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 #ifdef I_AM_DRACULA
    DracView gameState;
 
-   char *plays = "GGE.... SPA.... HMI.... MCF.... DMA.V.. GCF.... SMR.... HMR.... MBO.... DALT... GBO.... STO.... HMS.... MBB.... DGRT... GLE.... SBO.... HALT... MNA.... DCAT... GNA.... SBB.... HMAV... MBO.... DAO.... GBO.... SNA.... HPA.... MCF.... DGWT... GLE.... SBO.... HBU.... MBO.... DDUT... GPA.... SCF.... HCO.... MLE.... DHIT... GBU.... SBO.... HHA.... MPA.... DD1T.M. GCO.... SLE.... HPR.... MBU.... DIR..M. GHA.... SPA.... HBR.... MCO.... DLVT... GPR.... SBU.... HHA.... MHA.... DMNT.M. GBR.... SCO.... HCO.... MPR.... DEDT.M. GHA.... SHA.... HST.... MBR.... DHI.VM. GCO.... SPR.... HPA.... MPR.... DD1T.M. GAM.... SVI.... HST.... MVI.... DNS.... GNS.... SZA.... HZU.... MVE....";
+   char *plays = "GPA.... SMI.... HMN.... MSZ.... DCD.V.. GST.... SMU.... HED.... MKL.... DGAT... GMU.... SVI.... HNS.... MCDV... DCNT... GVI.... SBD.... HAO.... MGAT... DVRT... GBD.... SKL.... HMS.... MBE.... DHIT... GSZ.... SBC.... HTS.... MSO.... DBS.... GCNT... SBE.... HIO.... MVRTT.. DIO.... GBE.... SBC.... HSA.... MVR...."; 
 
 
    PlayerMessage msgs[1850];
@@ -184,7 +184,7 @@ static char *location(LocationID id) {
     } else if(id == UNKNOWN_LOCATION) {
        strcpy(loc, "Unknown location");
     }
- 
+
     return loc;
 }
-
+ 

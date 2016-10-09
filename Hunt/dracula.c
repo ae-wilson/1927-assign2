@@ -393,6 +393,11 @@ static LocationID goToLandOrSea(DracView gameState) {
         for(i = 0; i < numPorts; i++) {
             LocationID p = ports[i];
 
+            // Ports that connect to only one city
+            if(p == ATHENS) continue;
+            if(p == PLYMOUTH) continue;
+            
+
             if(!occupied[p]) safePorts[numSP++] = p;
         }
         free(ports);       
