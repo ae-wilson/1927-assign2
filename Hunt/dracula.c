@@ -718,29 +718,8 @@ static LocationID awayFromHunters(DracView gameState) {
         if(safeLoc[0] == whereIs(gameState, PLAYER_DRACULA)) {
             if(isLegalMove(gameState, HIDE) == TRUE) {
                 move = HIDE;
-            } else if(!hasDBInTrail(gameState)) {
-                // Try to double back to sea (as no ecounters at sea) if there is 
-                // only a safe Location and HIDE move is illegal
-                // Note: From the game Log, it shows that when there is only one safe Location
-                //       and it is where Dracula is currently at, that location has a higher possiblity 
-                //       connecting to a sea
-                LocationID trail[TRAIL_SIZE];
-                int i = 0;
-                for(i = 0; i < TRAIL_SIZE; i++) trail[i] = UNKNOWN_LOCATION;
-                giveMeTheTrail(gameState, PLAYER_DRACULA, trail);
-                
-                for(i = 0; i < TRAIL_SIZE - 1; i++) {
-                    LocationID v = trail[i];
-
-                    if(v != UNKNOWN_LOCATION) {
-                        if(isLegalMove(gameState, DOUBLE_BACK_1 + i) && idToType(v) == SEA) {
-                            move = DOUBLE_BACK_1 + i;
-                        }
-                    }
-                }
-
-                if(move == UNKNOWN_LOCATION) move = DOUBLE_BACK_1;
-
+            } else if(isLegalMove(gameState, DOUBLE_BACK_1)) {
+                move = DOUBLE_BACK_1;
             }
         } else {
             move = safeLoc[0];
@@ -843,7 +822,7 @@ static LocationID *safeConnectedLocations(DracView gameState, int *numLocations,
     // safe spots
     for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
         int number = 0;
-        LocationID *link = whereHuntersCanGoNext(gameState, &number, hunter, 1, 1, 0);
+        LocationID *link = whereHuntersCanGoNext(gameState, &number, hunter, 1, 1, 1);
         assert(link != NULL);
         
         for(loc = 0; loc < number; loc++) {
