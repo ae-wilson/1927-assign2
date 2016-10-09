@@ -682,20 +682,12 @@ static LocationID awayFromHunters(DracView gameState) {
     assert(gameState != NULL);
     LocationID move = UNKNOWN_LOCATION;         
 
-    // Discover where hunters can't reach while Dracula can reach (no sea move at the beginning)
+    // Discover where hunters can't reach while Dracula can reach
     int numSL = 0;
-    LocationID *safeLoc = safeConnectedLocations(gameState, &numSL, 1, 0);
+    LocationID *safeLoc = safeConnectedLocations(gameState, &numSL, 1, 1);
     assert(safeLoc != NULL);  
   
-    // If there is no safe spot (road moves), discover again (this time with sea moves)
-    if(numSL == 0) {
-        free(safeLoc);
 
-        safeLoc = safeConnectedLocations(gameState, &numSL, 1, 1);
-        assert(safeLoc != NULL);
-    } 
-
-    // 
     if(numSL > 1) {
         srand(time(NULL));
         int loc = rand() % numSL;
