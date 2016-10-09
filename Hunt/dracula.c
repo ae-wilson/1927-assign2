@@ -707,6 +707,13 @@ static LocationID awayFromHunters(DracView gameState) {
             srand(time(NULL));
             loc = rand() % count;
             move = random[loc];
+
+            if(idToType(move) == SEA) {
+                srand(time(NULL));
+                loc = rand() % count;
+                move = random[loc];
+            }
+
         } else {
             move = safeLoc[loc];
         }
