@@ -16,8 +16,7 @@
 #define TRUE 1
 #define FALSE 0
 
-#define NOT_IN_TRAIL -1
-#define SAFE_DISTANCE 3
+#define SAFE_DISTANCE 5
 
 // ***  Private Functions   ***
 static int isLegalMove(DracView gameState, LocationID move);
@@ -26,18 +25,15 @@ static int isAdjacent(DracView gameState, LocationID location);
 static int isSafeCastle(DracView gameState);
 static int isAtTheSameSea(DracView gameState);
 static int hasDBInTrail(DracView gameState);
-static int positionInTrail(DracView gameState, LocationID location);
 static int numHuntersThere(DracView gameState, LocationID loc);
 
 static LocationID firstMove(DracView gameState);
 static LocationID BestMove(DracView gameState);
 static LocationID randomMove(DracView gameState);
 static LocationID goToLandOrSea(DracView gameState);
-static LocationID goToSafeSea(DracView gameState);
 static LocationID backToCastle(DracView gameState);
 static LocationID awayFromHunters(DracView gameState);
 static LocationID doubleBackToSafeLoc(DracView gameState);
-static LocationID *connectedSeas(DracView gameState, int *numSeas);
 static LocationID *connectedPorts(DracView gameState, int *numPorts);
 static LocationID *safeConnectedLocations(DracView gameState, int *numLocations, int road, int sea);
 
@@ -349,8 +345,8 @@ static LocationID randomMove(DracView gameState) {
     return move;
 }
 
-// Determine whether Dracula should trvael to another sea
-// Or go to a 'safe' port city
+// Determine whether Dracula should go to a 'safe' port city
+// or escape from hunters
 static LocationID goToLandOrSea(DracView gameState) {
     assert(gameState != NULL);
     assert(idToType(whereIs(gameState, PLAYER_DRACULA)) == SEA);
@@ -405,146 +401,15 @@ static LocationID goToLandOrSea(DracView gameState) {
 
             move = safePorts[index];
             assert(isLegalMove(gameState, move)); 
-        } else {
-            LocationID fSea = goToSafeSea(gameState);
-        
-            if(fSea != UNKNOWN_LOCATION) {
-                printf("\nUnable to land :( ......\n");
-                printf("Sea Travel again :( ......\n");
-
-                if(positionInTrail(gameState, fSea) == NOT_IN_TRAIL) {
-                    move = fSea; 
-                } else if(!hasDBInTrail(gameState)) {
-                    int pos = positionInTrail(gameState, fSea);
-                    move = DOUBLE_BACK_1 + pos;
-
-                    assert(isLegalMove(gameState, move));
-                }
-            }
-        }
+        } 
  
-    } else {
-        LocationID fSea = goToSafeSea(gameState);
-        
-        if(fSea != UNKNOWN_LOCATION) {
-            printf("\nSea Travel again :( ......\n");
-
-            if(positionInTrail(gameState, fSea) == NOT_IN_TRAIL) {
-                move = fSea; 
-            } else if(!hasDBInTrail(gameState)) {
-                int pos = positionInTrail(gameState, fSea);
-                move = DOUBLE_BACK_1 + pos;
-
-                assert(isLegalMove(gameState, move));
-            }
-        }
-
-    }               
+    }              
  
     if(move == UNKNOWN_LOCATION) move = awayFromHunters(gameState);
 
     return move;
 }
 
-// Function which returns the furthermost connected sea 
-// Note: will not consider the sea where Dracula is currently at
-static LocationID goToSafeSea(DracView gameState) {
-    assert(gameState != NULL);
-
-    // Find out all the connected seas (not including the sea where Dracula is currently at)
-    int numSeas = 0;
-    LocationID *seas = connectedSeas(gameState, &numSeas);
-    assert(seas != NULL);
-
-    // Try to find out the furthermost sea from hunters 
-    LocationID fSea = UNKNOWN_LOCATION;
-    int i = 0;
-    int length = 0;
-    int hunter = 0;
-    int distFromH = 999;
-
-    for(i = 0; i < numSeas; i++) {
-        for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
-            if(whereIs(gameState, hunter) == whereIs(gameState, PLAYER_DRACULA)) continue;
-            
-            int turnsReach = 0;
-            LocationID *sPath = sPathForHunters(gameState, &turnsReach, hunter, whereIs(gameState, hunter),
-                                                    seas[i], 1, 1, 1);
-
-            // There must be a shortest path for hunters
-            assert(sPath != NULL);            
-
-            // Keep track of where the furthermost sea is
-            if(turnsReach < distFromH) {
-                distFromH = turnsReach;
-            }
-                
-            free(sPath);
-        }
-
-        if(distFromH > length) {
-            length = distFromH;
-            fSea = seas[i];
-        }
-    } 
- 
-    free(seas);
-
-    return fSea;
-}
-
-
-// Find the connected seas which are connected to Dracula's current location (Loc = a sea)
-// Note: if there is no Double Back in the trail, then all the adjacent seas in the trail will
-//       be considered
-//       
-//       The sea where dracula is at wont be included
-static LocationID *connectedSeas(DracView gameState, int *numSeas) {
-    assert(gameState != NULL);
-    assert(numSeas != NULL);
-    
-    int numLocations = 0;
-    LocationID *connLoc = whereCanIgo(gameState, &numLocations, 0, 1);
-    assert(connLoc != NULL);
-    
-
-    int number = 0;
-    LocationID *seas = malloc(NUM_MAP_LOCATIONS * sizeof(LocationID));
-    assert(seas != NULL);
-
-    int i = 0;
-    for(i = 0; i < numLocations; i++) {
-        LocationID v = connLoc[i];
-
-        if(idToType(v) == SEA && v != whereIs(gameState, PLAYER_DRACULA)) {
-            seas[number++] = v;
-        }
-    } 
-    free(connLoc);
-
-
-    if(!hasDBInTrail(gameState)) {
-        LocationID dracTrail[TRAIL_SIZE];
-        for(i = 0; i < TRAIL_SIZE; i++) {
-            dracTrail[i] = UNKNOWN_LOCATION;
-        }
-        giveMeTheTrail(gameState, PLAYER_DRACULA, dracTrail);
-
-        for(i = 0; i < TRAIL_SIZE - 1; i++) {
-            LocationID v = dracTrail[i];
-
-            if(v != UNKNOWN_LOCATION && v != whereIs(gameState, PLAYER_DRACULA)) {
-                if(isAdjacent(gameState, v) && idToType(v) == SEA) {
-                    seas[number++] = v;
-                } 
-            }
-        }
-    }
-
-
-    *numSeas = number;
-    return seas;
-}
 
 // Find out all the connected port cities (when Dracula's curr Loc = Sea)
 static LocationID *connectedPorts(DracView gameState, int *numPorts) {
@@ -597,7 +462,6 @@ static int isAtTheSameSea(DracView gameState) {
 
 // Determine what to do next in order to go back to Castle Dracula
 // Note: shortest Path
-//       If there is DB in the trail, a different shortest path may be obtained
 static LocationID backToCastle(DracView gameState) {
     assert(gameState != NULL);
 
@@ -610,8 +474,6 @@ static LocationID backToCastle(DracView gameState) {
     }
 
     // Find the shortest path from Dracula's current location to his castle
-    // *** will take Dracula's trail into account when there's a Double back
-    //     move in his trail;
     int length = 0;
     LocationID *sPath = shortestPath(gameState, &length, curr, CASTLE_DRACULA, 1, 1);
 
@@ -631,32 +493,11 @@ static LocationID backToCastle(DracView gameState) {
 
             move = next;
         } else {
-           
-            // Take Double Back and go to Castle Dracula along the shortest path calculated
-            LocationID trail[TRAIL_SIZE];
-            giveMeTheTrail(gameState, PLAYER_DRACULA, trail);
-
-            int DBackPos = positionInTrail(gameState, next);
-
-            if(DBackPos != NOT_IN_TRAIL) {
-                next = DOUBLE_BACK_1 + DBackPos;
-                assert(next >= DOUBLE_BACK_1 && next <= DOUBLE_BACK_5);
-                assert(isLegalMove(gameState, next) == TRUE);                   
-          
-                printf("\n(`vv`) --> Castle Dracula\n");
-
-                move = next;
-            } else {
-                // if Dracula cannot go back to his castle along the shortest path
-                // Just make sure Dracula will make another (**legal) move
-                // i.e: when this happens, possibly there is a bug  
-                printf("\nBug Bug Bug !!!!!!\n");
-
-                move = awayFromHunters(gameState);
-            }
-              
-            free(sPath);
+            move = awayFromHunters(gameState);
         } 
+             
+        free(sPath);
+         
     } else {
         
         // Escape when there is no shortest path
@@ -945,18 +786,9 @@ static int numHuntersThere(DracView gameState, LocationID loc) {
 static int isSafeCastle(DracView gameState) {
     assert(gameState != NULL);
 
-    LocationID trail[TRAIL_SIZE];
-    int i = 0;
-    for(i = 0; i < TRAIL_SIZE; i++) trail[i] = UNKNOWN_LOCATION;
-    giveMeTheTrail(gameState, PLAYER_DRACULA, trail);
-
-    for(i = 0; i < TRAIL_SIZE; i++) {
-        if(trail[i] ==  CASTLE_DRACULA) return FALSE;
-    }
-
-
     int hunter = 0; 
-    int distFromH = NUM_MAP_LOCATIONS + 1;
+    int greaterThanSD = 0;
+    int lessThanSD = 0;
  
     for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
         int length = 0;
@@ -965,7 +797,12 @@ static int isSafeCastle(DracView gameState) {
             
         assert(sPath != NULL);
 
-        if(length < distFromH) distFromH = length;
+        if(length < SAFE_DISTANCE) {
+            lessThanSD++;
+        } else {
+            greaterThanSD++;
+        }
+
         free(sPath);
     }
 
@@ -976,35 +813,13 @@ static int isSafeCastle(DracView gameState) {
     int isSafe = FALSE;
     if(distFromD == 0) return FALSE;
 
-    if(distFromH - distFromD >= SAFE_DISTANCE) {
+    if(distFromD < SAFE_DISTANCE - 1 && lessThanSD <= 1) {
         isSafe = TRUE;
     } 
     free(sPath);
 
     return isSafe;
 }
-
-// Find out if the given location exists in the trail
-// Note: wont take the last move in the trail as it falls off
-//       from the trail at the beginning of current round
-static int positionInTrail(DracView gameState, LocationID location) {
-    assert(gameState != NULL);
-    
-    LocationID trail[TRAIL_SIZE];
-    int i = 0;
-    for(i = 0; i < TRAIL_SIZE; i++) trail[i] = UNKNOWN_LOCATION;
-    giveMeTheTrail(gameState, PLAYER_DRACULA, trail);
-
-    for(i = 0; i < TRAIL_SIZE - 1; i++) {
-        if(trail[i] != UNKNOWN_LOCATION && trail[i] == location) {
-            return i;
-        }
-    }
-
-
-    return NOT_IN_TRAIL;
-}
-
 
 // Selection Sort
 static void sortLocIDArray(LocationID *array, int low, int high) {

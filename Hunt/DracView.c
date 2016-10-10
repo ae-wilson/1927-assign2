@@ -443,16 +443,8 @@ LocationID *shortestPath(DracView currentView, int *length, LocationID start, Lo
     int i = 0;
     for(i = 0; i < TRAIL_SIZE; i++) dracMoves[i] = UNKNOWN_LOCATION; 
     giveMeTheMoves(currentView, PLAYER_DRACULA, dracMoves);
-
-    int hasDB = FALSE;
-    for(i = 0; i < TRAIL_SIZE - 1; i++) {
-        if(dracMoves[i] >= DOUBLE_BACK_1 && dracMoves[i] <= DOUBLE_BACK_5) {
-            hasDB = TRUE;
-            break;
-        }
-    } 
-
-
+   
+    
     int maxCost = 99999999;
     int dist[NUM_MAP_LOCATIONS];
     int pred[NUM_MAP_LOCATIONS];
@@ -470,18 +462,18 @@ LocationID *shortestPath(DracView currentView, int *length, LocationID start, Lo
     dist[start] = 0;
     pred[start] = start;
 
-    if(hasDB == TRUE) {
-        for(i = 0; i < TRAIL_SIZE - 1; i++) {
-            if(dracMoves[i] >= MIN_MAP_LOCATION && dracMoves[i] <= MAX_MAP_LOCATION 
-               && dracMoves[i] != start) 
-            {
-                LocationID s = dracMoves[i];
-                forbidden[s] = 1;
-            } else if(dracMoves[i] == TELEPORT) {
-                forbidden[CASTLE_DRACULA] = 1;
-            }
+
+    for(i = 0; i < TRAIL_SIZE - 1; i++) {
+        if(dracMoves[i] >= MIN_MAP_LOCATION && dracMoves[i] <= MAX_MAP_LOCATION 
+           && dracMoves[i] != start) 
+        {
+            LocationID s = dracMoves[i];
+            forbidden[s] = 1;
+        } else if(dracMoves[i] == TELEPORT) {
+            forbidden[CASTLE_DRACULA] = 1;
         }
     }
+    
 
 
     Queue q = newQueue();
@@ -500,6 +492,7 @@ LocationID *shortestPath(DracView currentView, int *length, LocationID start, Lo
         LocationID *connLoc = connectedLocations(currentView->gameView, &numLocations, loc,
                                                  PLAYER_DRACULA, giveMeTheRound(currentView),
                                                  road, 0, sea);
+
         assert(connLoc != NULL);
 
         for(i = 0; i < numLocations; i++) {
@@ -531,7 +524,7 @@ LocationID *shortestPath(DracView currentView, int *length, LocationID start, Lo
     count++;
 
     *length = count;
-    LocationID *sPath = malloc(*length * sizeof(LocationID));
+    LocationID *sPath = malloc(NUM_MAP_LOCATIONS * sizeof(LocationID));
     assert(sPath != NULL);
 
     count--;
