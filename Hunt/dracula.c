@@ -393,10 +393,8 @@ static LocationID goToLandOrSea(DracView gameState) {
         for(i = 0; i < numPorts; i++) {
             LocationID p = ports[i];
 
-            // Ports that connect to only one city
             if(p == ATHENS) continue;
             if(p == PLYMOUTH) continue;
-            
 
             if(!occupied[p]) safePorts[numSP++] = p;
         }
@@ -693,6 +691,15 @@ static LocationID awayFromHunters(DracView gameState) {
 
         safeLoc = safeConnectedLocations(gameState, &numSL, 1, 1);
         assert(safeLoc != NULL);  
+    } else if(numSL == 1) {
+        LocationID where = safeLoc[0];
+
+        if(where == whereIs(gameState, PLAYER_DRACULA)) {
+            free(safeLoc);
+
+            safeLoc = safeConnectedLocations(gameState, &numSL, 1, 1);
+            assert(safeLoc != NULL);
+        }
     }
   
 
@@ -728,8 +735,40 @@ static LocationID awayFromHunters(DracView gameState) {
         if(v == whereIs(gameState, PLAYER_DRACULA)) {
             if(isLegalMove(gameState, HIDE) == TRUE) {
                 move = HIDE;
-            } else if(isLegalMove(gameState, DOUBLE_BACK_1)) {
-                move = DOUBLE_BACK_1;
+            } else if(!hasDBInTrail(gameState)) {
+                LocationID trail[TRAIL_SIZE];
+                giveMeTheTrail(gameState, PLAYER_DRACULA, trail);
+
+                int hunter = 0;
+                int occupied[NUM_MAP_LOCATIONS];
+            
+                int i = 0;
+                for(i = 0; i < NUM_MAP_LOCATIONS; i++) occupied[i] = 0;
+
+                for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
+                    int numLocations = 0;
+                    LocationID *connLoc = whereHuntersCanGoNext(gameState, &numLocations, hunter, 1, 1, 1);
+                    assert(connLoc != NULL);
+
+                    for(i = 0; i < numLocations; i++) {
+                        LocationID v = connLoc[i];
+                        if(idToType(v) == SEA) continue;
+
+                        occupied[v] = 1;
+                    }
+                    free(connLoc);
+                }
+
+                for(i = TRAIL_SIZE - 1; i >= 0; i--) {
+                    LocationID loc = trail[i];
+
+                    if(loc != UNKNOWN_LOCATION) {
+                        if(!occupied[loc] && isLegalMove(gameState, DOUBLE_BACK_1 + i)) { 
+                            move = DOUBLE_BACK_1 + i;
+                            break;
+                        }
+                    }
+                } 
             }
         } else {
             move = v;
@@ -764,9 +803,11 @@ static LocationID awayFromHunters(DracView gameState) {
                 free(connLoc);
             }
 
-            for(i = 0; i < TRAIL_SIZE - 1; i++) {
+            for(i = TRAIL_SIZE - 1; i >= 0; i--) {
                 if(trail[i] != UNKNOWN_LOCATION) {
                     if(!occupied[trail[i]] && isLegalMove(gameState, DOUBLE_BACK_1 + i)) { 
+                        printf("\nDouble back to safe spot ......\n");
+
                         move = DOUBLE_BACK_1 + i;
                         break;
                     }
