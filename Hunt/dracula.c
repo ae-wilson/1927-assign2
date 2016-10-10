@@ -643,7 +643,14 @@ static LocationID doubleBackToSafeLoc(DracView gameState) {
 
         for(i = 0; i < numLocations; i++) {
             LocationID v = connLoc[i];
-            if(idToType(v) == SEA) continue;
+            LocationID dracLoc = whereIs(gameState, PLAYER_DRACULA); 
+
+            if(idToType(dracLoc) == LAND) {
+                // Seas are safe when Dracula is on land
+                if(idToType(v) == SEA) continue;
+            } else if(idToType(dracLoc) == SEA && idToType(whereIs(gameState, hunter)) == SEA) {
+                if(idToType(v) == SEA) continue;
+            }
 
             occupied[v] = 1;
         }
