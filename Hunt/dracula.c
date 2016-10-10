@@ -68,7 +68,7 @@ void decideDraculaMove(DracView gameState) {
     if(move == UNKNOWN_LOCATION) move = TELEPORT;
     moveToAbbreviation(move, abbrev);
 
-    registerBestPlay(abbrev, "Dracula is coming");
+    registerBestPlay(abbrev, "Hunters, Listen and Obey!");
 }
 
 
@@ -706,7 +706,14 @@ static LocationID *safeConnectedLocations(DracView gameState, int *numLocations,
         
         for(loc = 0; loc < number; loc++) {
             LocationID v = link[loc];
-            if(idToType(v) == SEA) continue;
+            LocationID dracLoc = whereIs(gameState, PLAYER_DRACULA); 
+
+            if(idToType(dracLoc) == LAND) {
+                // Seas are safe when Dracula is on land
+                if(idToType(v) == SEA) continue;
+            } else if(idToType(dracLoc) == SEA && idToType(whereIs(gameState, hunter)) == SEA) {
+                if(idToType(v) == SEA) continue;
+            }
 
             assert(v >= MIN_MAP_LOCATION && v <= MAX_MAP_LOCATION);
 

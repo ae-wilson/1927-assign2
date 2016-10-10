@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 #ifdef I_AM_DRACULA
    DracView gameState;
 
-   char *plays = "GED.... SCA.... HSZ.... MBI.... DSJ.V.. GMN.... SGR.... HKL.... MRO.... DSOT... GLV.... SMA.... HBC.... MFL.... DVAT... GLO.... SSR.... HSOT... MVE.... DATT... GEC.... SAL.... HBE.... MBD.... DHIT... GNS.... SMS.... HSA.... MKL.... DD2T... GHA.... STS.... HVAT... MBE.... DIO..V. GNS.... SIO.... HIO.... MSA....";
+   char *plays = "GED.... SCA.... HSZ.... MBI.... DPA.V.. GMN.... SGR.... HKL.... MRO.... DSTT... GLV.... SMA.... HBC.... MFL.... DBUT... GLO.... SSR.... HSO.... MZU.... DAMT... GSW.... SBO.... HSA.... MCO.... DNS.... GIR.... SBB.... HBE.... MAMT... DEC.... GAO.... SAO.... HKL.... MNS.... DPLT.V. GCA.... SGW.... HBD.... MEC.... DD2..M. GAO.... SAO.... HPR.... MAO.... DLOT.M. GCA.... SGW.... HBD.... MLS.... DMNT... GMA.... SAO.... HKL.... MMA.... DEDT... GPA.... SNS.... HBD.... MBO.... DNS.... GNA.... SEC.... HKL.... MLE.... DHAT.M. GBO.... SLOT... HBD.... MBU.... DLI.V.. GBU.... SLV.... HKL.... MAM.... DNUT... GCO.... SIR.... HBD.... MCO.... DMUT.M. GHAT... SAO.... HPR.... MBR.... DZUT.M. GLIV... SEC.... HFR.... MPR.... DGET... GNUT... SLE.... HST.... MVI.... DCFT... GMUT... SPA.... HZUT... MVE.... DTOT... GMU.... SGET... HMR.... MMU.... DBAT... GST.... SCFT... HBO.... MST.... DMS.... GLI.... SCF.... HBB.... MBU.... DTS.... GVI.... SBO.... HAO.... MAM.... DCGT... GBD.... SSR.... HCA.... MNS.... DHIT... GKL.... SLS.... HAO.... MED.... DD1T.M. GCD.... SAO.... HGW.... MNS.... DTP.VM. GCDVD.. SAO.... HGW.... MNS.... DGAT... GGATD.. SMS.... HAO.... MHA.... DCNT... GBE.... STS.... HNS.... MBR.... DBS..M. GVR.... SIO.... HAO.... MPR.... DIO..M. GBS.... SIO.... HMS.... MVE.... DAS..M. GBS.... SAS.... HTS.... MAS....";
 
    PlayerMessage msgs[1850];
 
@@ -182,6 +182,8 @@ static char *location(LocationID id) {
        strcpy(loc, "Unknown Sea");
     } else if(id == UNKNOWN_LOCATION) {
        strcpy(loc, "Unknown location");
+    } else if(id == TELEPORT) {
+       strcpy(loc, "Teleport");
     }
 
     return loc;
