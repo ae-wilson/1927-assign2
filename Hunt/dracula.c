@@ -168,13 +168,9 @@ static LocationID firstMove(DracView gameState) {
     int occupied[NUM_MAP_LOCATIONS];
     LocationID firstMove = UNKNOWN_LOCATION;
   
-    // Initialse + don't want to start the game at sea (because -2 HP at the end of turn) 
+    // Initialse  
     for(i = 0; i < NUM_MAP_LOCATIONS; i++) {
-        if(idToType((LocationID) i) != SEA) {
-            occupied[i] = 0;
-        } else {
-            occupied[i] = 1;
-        }
+        occupied[i] = 0;
     }
     occupied[ST_JOSEPH_AND_ST_MARYS] = 1;  // Never start at the hospital
 
@@ -195,21 +191,20 @@ static LocationID firstMove(DracView gameState) {
         if(numLocations > 0) free(connLoc);
     }
 
-    // Count how many 'unoccupied' cities that Dracula can go
-    int count = 0;
-    LocationID unoccupied[NUM_MAP_LOCATIONS];
-    for(i = 0; i < NUM_MAP_LOCATIONS; i++) unoccupied[i] = -1;
-   
-    int loc = 0;
-    for(loc = 0; loc < NUM_MAP_LOCATIONS; loc++) {
-        if(!occupied[loc] && idToType(loc) != SEA) unoccupied[count++] = loc;
-    } 
-    assert(count > 0);
 
-    srand(time(NULL));
-    int index = rand() % count;
-    firstMove = unoccupied[index];
+    if(!occupied[SARAJEVO]) {
+        firstMove = SARAJEVO;
+    } else if(!occupied[CADIZ]) {
+        firstMove = CADIZ;
+    } else if(!occupied[CONSTANTA]) {
+        firstMove = CONSTANTA;
+    } else if(!occupied[NUREMBURG]) {
+        firstMove = NUREMBURG;
+    } else {
+        firstMove = CASTLE_DRACULA;
+    }
 
+    
     return firstMove;
 } 
 
@@ -267,12 +262,16 @@ static LocationID randomMove(DracView gameState) {
 
     // For the game log
     printf("\nRandom Move:\n");
-    printf("numLM = %d\n", numLM);
-
+    printf("numLM = %d\n\n", numLM);
+    for(i = 0; i < numLM; i++) {
+        printf("%s\n", idToName(legalMoves[i]));
+    }
 
     if(numLM > 0) {
         srand(time(NULL));
         int index = rand() % numLM;
+
+        // Make sure that there is at least one legal move which will be made by Dracula
         move = legalMoves[index];
 
         if(numHuntersThere(gameState, move) > 0) {
@@ -701,7 +700,19 @@ static LocationID awayFromHunters(DracView gameState) {
             assert(safeLoc != NULL);
         }
     }
-  
+ 
+
+    // For the game Log
+    printf("\nS Moves:\n");
+    printf("numSL = %d\n\n", numSL);
+    
+    int n = 0;
+    for(n = 0; n < numSL; n++) {
+        printf("%s\n", idToName(safeLoc[n]));
+    }
+    printf("\n");
+
+ 
 
     if(numSL > 1) {
         srand(time(NULL));
@@ -763,7 +774,9 @@ static LocationID awayFromHunters(DracView gameState) {
                     LocationID loc = trail[i];
 
                     if(loc != UNKNOWN_LOCATION) {
-                        if(!occupied[loc] && isLegalMove(gameState, DOUBLE_BACK_1 + i)) { 
+                        if(!occupied[loc] && isLegalMove(gameState, DOUBLE_BACK_1 + i)) {
+                            printf("\nDouble back to safe spot\n");
+ 
                             move = DOUBLE_BACK_1 + i;
                             break;
                         }
@@ -817,16 +830,6 @@ static LocationID awayFromHunters(DracView gameState) {
 
     }
 
-
-    // For the game Log
-    printf("\nS Moves:\n");
-    printf("numSL = %d\n", numSL);
-    
-    int i = 0;
-    for(i = 0; i < numSL; i++) {
-        printf("%s\n", idToName(safeLoc[i]));
-    }
-    printf("\n");
 
     free(safeLoc);
 
