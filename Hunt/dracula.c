@@ -36,6 +36,7 @@ static LocationID goToLandOrSea(DracView gameState);
 static LocationID goToSafeSea(DracView gameState);
 static LocationID backToCastle(DracView gameState);
 static LocationID awayFromHunters(DracView gameState);
+static LocationID doubleBackToSafeLoc(DracView gameState);
 static LocationID *connectedSeas(DracView gameState, int *numSeas);
 static LocationID *connectedPorts(DracView gameState, int *numPorts);
 static LocationID *safeConnectedLocations(DracView gameState, int *numLocations, int road, int sea);
@@ -392,9 +393,6 @@ static LocationID goToLandOrSea(DracView gameState) {
         for(i = 0; i < numPorts; i++) {
             LocationID p = ports[i];
 
-            if(p == ATHENS) continue;
-            if(p == PLYMOUTH) continue;
-
             if(!occupied[p]) safePorts[numSP++] = p;
         }
         free(ports);       
@@ -690,17 +688,8 @@ static LocationID awayFromHunters(DracView gameState) {
 
         safeLoc = safeConnectedLocations(gameState, &numSL, 1, 1);
         assert(safeLoc != NULL);  
-    } else if(numSL == 1) {
-        LocationID where = safeLoc[0];
+    }  
 
-        if(where == whereIs(gameState, PLAYER_DRACULA)) {
-            free(safeLoc);
-
-            safeLoc = safeConnectedLocations(gameState, &numSL, 1, 1);
-            assert(safeLoc != NULL);
-        }
-    }
- 
 
     // For the game Log
     printf("\nS Moves:\n");
@@ -719,20 +708,33 @@ static LocationID awayFromHunters(DracView gameState) {
         int loc = rand() % numSL;
  
         // Try not stay at the same place
-        if(safeLoc[loc] == whereIs(gameState, PLAYER_DRACULA)) { 
-            int i = 0;
-            int count = 0;
-            int random[NUM_MAP_LOCATIONS];
+        if(safeLoc[loc] == whereIs(gameState, PLAYER_DRACULA)) {
+            if(isLegalMove(gameState, HIDE)) {
+                move = HIDE;
+            } else if(!hasDBInTrail(gameState)) {
+                printf("\nDouble Back to safe spot ......\n");
 
-            for(i = 0; i < NUM_MAP_LOCATIONS; i++) random[i] = -1;
+                move = doubleBackToSafeLoc(gameState);
+            } 
 
-            for(i = 0; i < numSL; i++) {
-                if(safeLoc[i] != whereIs(gameState, PLAYER_DRACULA)) random[count++] = safeLoc[i];
-            }
+            if(move == UNKNOWN_LOCATION) { 
+                int i = 0;
+                int count = 0;
+                int random[NUM_MAP_LOCATIONS];
 
-            srand(time(NULL));
-            loc = rand() % count;
-            move = random[loc];
+                for(i = 0; i < NUM_MAP_LOCATIONS; i++) random[i] = -1;
+
+                for(i = 0; i < numSL; i++) {
+                    if(safeLoc[i] != whereIs(gameState, PLAYER_DRACULA)) random[count++] = safeLoc[i];
+                }
+
+                srand(time(NULL));
+                loc = rand() % count;
+
+                printf("\nGo to random safe spot ......\n");
+
+                move = random[loc];
+            } 
         } else {
             move = safeLoc[loc];
         }
@@ -747,41 +749,9 @@ static LocationID awayFromHunters(DracView gameState) {
             if(isLegalMove(gameState, HIDE) == TRUE) {
                 move = HIDE;
             } else if(!hasDBInTrail(gameState)) {
-                LocationID trail[TRAIL_SIZE];
-                giveMeTheTrail(gameState, PLAYER_DRACULA, trail);
+                printf("\nDouble Back to safe spot ......\n");
 
-                int hunter = 0;
-                int occupied[NUM_MAP_LOCATIONS];
-            
-                int i = 0;
-                for(i = 0; i < NUM_MAP_LOCATIONS; i++) occupied[i] = 0;
-
-                for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
-                    int numLocations = 0;
-                    LocationID *connLoc = whereHuntersCanGoNext(gameState, &numLocations, hunter, 1, 1, 1);
-                    assert(connLoc != NULL);
-
-                    for(i = 0; i < numLocations; i++) {
-                        LocationID v = connLoc[i];
-                        if(idToType(v) == SEA) continue;
-
-                        occupied[v] = 1;
-                    }
-                    free(connLoc);
-                }
-
-                for(i = TRAIL_SIZE - 1; i >= 0; i--) {
-                    LocationID loc = trail[i];
-
-                    if(loc != UNKNOWN_LOCATION) {
-                        if(!occupied[loc] && isLegalMove(gameState, DOUBLE_BACK_1 + i)) {
-                            printf("\nDouble back to safe spot\n");
- 
-                            move = DOUBLE_BACK_1 + i;
-                            break;
-                        }
-                    }
-                } 
+                move = doubleBackToSafeLoc(gameState); 
             }
         } else {
             move = v;
@@ -790,44 +760,11 @@ static LocationID awayFromHunters(DracView gameState) {
     } else {
 
         // Consider Double Back in order to go to a safe spot
-        int hasDB = hasDBInTrail(gameState);
-        
-        if(hasDB != TRUE) {
-            LocationID trail[TRAIL_SIZE];
-            giveMeTheTrail(gameState, PLAYER_DRACULA, trail);
+        if(!hasDBInTrail(gameState)) {
+            printf("\nDouble Back to safe spot ......\n");
 
-            int hunter = 0;
-            int occupied[NUM_MAP_LOCATIONS];
-            
-            int i = 0;
-            for(i = 0; i < NUM_MAP_LOCATIONS; i++) occupied[i] = 0;
-
-            for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
-                int numLocations = 0;
-                LocationID *connLoc = whereHuntersCanGoNext(gameState, &numLocations, hunter, 1, 1, 1);
-                assert(connLoc != NULL);
-
-                for(i = 0; i < numLocations; i++) {
-                    LocationID v = connLoc[i];
-                    if(idToType(v) == SEA) continue;
-
-                    occupied[v] = 1;
-                }
-                free(connLoc);
-            }
-
-            for(i = TRAIL_SIZE - 1; i >= 0; i--) {
-                if(trail[i] != UNKNOWN_LOCATION) {
-                    if(!occupied[trail[i]] && isLegalMove(gameState, DOUBLE_BACK_1 + i)) { 
-                        printf("\nDouble back to safe spot ......\n");
-
-                        move = DOUBLE_BACK_1 + i;
-                        break;
-                    }
-                }
-            }             
+            move = doubleBackToSafeLoc(gameState);             
         }
-
     }
 
 
@@ -839,6 +776,49 @@ static LocationID awayFromHunters(DracView gameState) {
     return move;
 }
 
+// Use Double back to go to safe Location
+static LocationID doubleBackToSafeLoc(DracView gameState) {
+    assert(gameState != NULL);
+    assert(!hasDBInTrail(gameState));    
+
+    LocationID move = UNKNOWN_LOCATION;
+
+    LocationID trail[TRAIL_SIZE];
+    giveMeTheTrail(gameState, PLAYER_DRACULA, trail);
+
+    int hunter = 0;
+    int occupied[NUM_MAP_LOCATIONS];
+          
+    int i = 0;
+    for(i = 0; i < NUM_MAP_LOCATIONS; i++) occupied[i] = 0;
+
+    for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
+        int numLocations = 0;
+        LocationID *connLoc = whereHuntersCanGoNext(gameState, &numLocations, hunter, 1, 1, 1);
+        assert(connLoc != NULL);
+
+        for(i = 0; i < numLocations; i++) {
+            LocationID v = connLoc[i];
+            if(idToType(v) == SEA) continue;
+
+            occupied[v] = 1;
+        }
+        free(connLoc);
+    }
+
+    for(i = TRAIL_SIZE - 1; i >= 0; i--) {
+        LocationID loc = trail[i];
+
+        if(loc != UNKNOWN_LOCATION) {
+            if(!occupied[loc] && isLegalMove(gameState, DOUBLE_BACK_1 + i)) {
+                move = DOUBLE_BACK_1 + i;
+                break;
+            }
+        }
+    } 
+
+    return move;
+}
 
 // Find out places where are not connected to hunters' locations
 static LocationID *safeConnectedLocations(DracView gameState, int *numLocations, int road, int sea) {
