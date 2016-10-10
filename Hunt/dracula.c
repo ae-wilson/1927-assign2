@@ -684,8 +684,16 @@ static LocationID awayFromHunters(DracView gameState) {
 
     // Discover where hunters can't reach while Dracula can reach
     int numSL = 0;
-    LocationID *safeLoc = safeConnectedLocations(gameState, &numSL, 1, 1);
+    LocationID *safeLoc = safeConnectedLocations(gameState, &numSL, 1, 0);
     assert(safeLoc != NULL);  
+ 
+     
+    if(numSL == 0) {
+        free(safeLoc);
+
+        safeLoc = safeConnectedLocations(gameState, &numSL, 1, 1);
+        assert(safeLoc != NULL);  
+    }
   
 
     if(numSL > 1) {
@@ -707,13 +715,6 @@ static LocationID awayFromHunters(DracView gameState) {
             srand(time(NULL));
             loc = rand() % count;
             move = random[loc];
-
-            if(idToType(move) == SEA) {
-                srand(time(NULL));
-                loc = rand() % count;
-                move = random[loc];
-            }
-
         } else {
             move = safeLoc[loc];
         }
