@@ -652,7 +652,7 @@ static LocationID backToCastle(DracView gameState) {
 
                 move = next;
             } else {
-                // if Dracula cannot go back to his castle along teh shortest path
+                // if Dracula cannot go back to his castle along the shortest path
                 // Just make sure Dracula will make another (**legal) move
                 // i.e: when this happens, possibly there is a bug  
                 printf("\nBug Bug Bug !!!!!!\n");
@@ -723,14 +723,16 @@ static LocationID awayFromHunters(DracView gameState) {
     } else if(numSL == 1) {
         
         // If the safe spot is at Dracula's current location, take Hide or Double back move
-        if(safeLoc[0] == whereIs(gameState, PLAYER_DRACULA)) {
+        LocationID v = safeLoc[0];
+
+        if(v == whereIs(gameState, PLAYER_DRACULA)) {
             if(isLegalMove(gameState, HIDE) == TRUE) {
                 move = HIDE;
             } else if(isLegalMove(gameState, DOUBLE_BACK_1)) {
                 move = DOUBLE_BACK_1;
             }
         } else {
-            move = safeLoc[0];
+            move = v;
             assert(isLegalMove(gameState, move) == TRUE);
         }
     } else {
@@ -777,6 +779,7 @@ static LocationID awayFromHunters(DracView gameState) {
 
     // For the game Log
     printf("\nS Moves:\n");
+    printf("numSL = %d\n", numSL);
     
     int i = 0;
     for(i = 0; i < numSL; i++) {
