@@ -389,6 +389,10 @@ static LocationID goToLandOrSea(DracView gameState) {
         for(i = 0; i < numPorts; i++) {
             LocationID p = ports[i];
 
+            // Ports which are not 'safe'
+            if(p == BARI) continue;
+            if(p == PLYMOUTH) continue;
+
             if(!occupied[p]) safePorts[numSP++] = p;
         }
         free(ports);       
