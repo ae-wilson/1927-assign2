@@ -135,6 +135,8 @@ static int isLegalMove(DracView gameState, LocationID move) {
             move = dracMoves[pos]; 
         } else if(dracMoves[pos] == TELEPORT) {
             move = CASTLE_DRACULA;
+        } else {
+            move = dracMoves[pos];
         }
 
                 
@@ -608,8 +610,6 @@ static LocationID awayFromHunters(DracView gameState) {
             if(isLegalMove(gameState, HIDE) == TRUE) {
                 move = HIDE;
             } else if(!hasDBInTrail(gameState)) {
-                printf("\nDouble Back to safe spot ......\n");
-
                 move = doubleBackToSafeLoc(gameState); 
             }
         } else {
@@ -620,8 +620,6 @@ static LocationID awayFromHunters(DracView gameState) {
 
         // Consider Double Back in order to go to a safe spot
         if(!hasDBInTrail(gameState)) {
-            printf("\nDouble Back to safe spot ......\n");
-
             move = doubleBackToSafeLoc(gameState);             
         }
     }
@@ -667,16 +665,19 @@ static LocationID doubleBackToSafeLoc(DracView gameState) {
         free(connLoc);
     }
 
-    for(i = TRAIL_SIZE - 1; i >= 0; i--) {
+    for(i = TRAIL_SIZE - 2; i >= 0; i--) {
         LocationID loc = trail[i];
 
         if(loc != UNKNOWN_LOCATION) {
             if(!occupied[loc] && isLegalMove(gameState, DOUBLE_BACK_1 + i)) {
+                printf("\nDouble Back to safe spot ......\n");
+
                 move = DOUBLE_BACK_1 + i;
                 break;
             }
         }
-    } 
+    }
+
 
     return move;
 }
