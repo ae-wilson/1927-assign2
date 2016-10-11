@@ -102,11 +102,6 @@ static int isLegalMove(DracView gameState, LocationID move) {
     }
 
     giveMeTheMoves(gameState, PLAYER_DRACULA, dracMoves);
-    for(i = 0; i < TRAIL_SIZE - 1; i++) {
-        if(dracMoves[i] == TELEPORT) {
-            dracMoves[i] = CASTLE_DRACULA;
-        }
-    }
 
 
     if(move >= MIN_MAP_LOCATION && move <= MAX_MAP_LOCATION) {
@@ -134,9 +129,14 @@ static int isLegalMove(DracView gameState, LocationID move) {
 
         // Find out where Dracula doubled back to
         int pos = move - DOUBLE_BACK_1;
-        if(dracMoves[pos] == HIDE) pos++;
-        if(pos > 4) return FALSE;
-        move = dracMoves[pos]; 
+        if(dracMoves[pos] == HIDE) {
+            pos++;
+            if(pos > 4) return FALSE;
+            move = dracMoves[pos]; 
+        } else if(dracMoves[pos] == TELEPORT) {
+            move = CASTLE_DRACULA;
+        }
+
                 
         if(move < MIN_MAP_LOCATION || move > MAX_MAP_LOCATION) return FALSE; 
         if(isAdjacent(gameState, move) == FALSE) return FALSE; 

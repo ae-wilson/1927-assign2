@@ -327,11 +327,6 @@ LocationID *whereCanIgo(DracView currentView, int *numLocations, int road, int s
     assert(dracTrail != NULL);
     getHistory(currentView->gameView, PLAYER_DRACULA, dracTrail);
 
-    int i = 0;
-    for(i = 0; i < TRAIL_SIZE; i++) {
-        if(dracTrail[i] == TELEPORT) dracTrail[i] = CASTLE_DRACULA;
-    }
-
     int counterA = 0;
     int counterB = 0;
     while(counterA < *numLocations) {
