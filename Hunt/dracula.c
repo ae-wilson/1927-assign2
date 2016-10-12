@@ -49,7 +49,7 @@ void decideDraculaMove(DracView gameState) {
     assert(gameState != NULL);
 
     // For indentation in the game log
-    printf("\n");
+    printf("\n\n");
 
     int i = 0;
     Round round = giveMeTheRound(gameState); 
@@ -469,8 +469,8 @@ static LocationID goToLandOrSea(DracView gameState) {
         printf("Unable to Land :( ......\n\n");
         
         int numSeas = 0;
-        LocationID *connSeas = whereCanIgo(gameState, &numSeas, 0, 1);
-        assert(connSeas != NULL);
+        LocationID *connLoc = whereCanIgo(gameState, &numSeas, 0, 1);
+        assert(connLoc != NULL);
 
         int hunter = 0;   
         int occupiedSeas[NUM_MAP_LOCATIONS];
@@ -481,39 +481,57 @@ static LocationID goToLandOrSea(DracView gameState) {
             if(idToType(whereIs(gameState, hunter)) == SEA) continue;
 
             int numLocations = 0;
-            LocationID *connLoc = whereHuntersCanGoNext(gameState, &numLocations, hunter, 0, 0, 1);
+            LocationID *adLoc = whereHuntersCanGoNext(gameState, &numLocations, hunter, 0, 0, 1);
             assert(connLoc != NULL);
 
             for(i = 0; i < numLocations; i++) {
-                LocationID sea = connLoc[i];
-                occupiedSeas[sea] = 1;
+                LocationID v = connLoc[i];
+                if(idToType(v) == SEA) {
+                    occupiedSeas[v] = 1;
+                }
             }
 
-            free(connLoc);
+            free(adLoc);
         }
 
 
-        int nSafeSeas;
+        int nSafeSeas = 0;
         LocationID safeSeas[NUM_MAP_LOCATIONS];
         for(i = 0; i < NUM_MAP_LOCATIONS; i++) {
             safeSeas[i] = UNKNOWN_LOCATION;
         }
 
         for(i = 0; i < numSeas; i++) {
-            LocationID sea = connSeas[i];
+            LocationID v = connLoc[i];
 
-            if(numHuntersThere(gameState, sea) == 0 && !occupiedSeas[sea]) {
-                safeSeas[nSafeSeas++] = sea;
+            if(idToType(v) != SEA) continue;
+
+            if(numHuntersThere(gameState, v) == 0 && !occupiedSeas[v] && 
+               isLegalMove(gameState, v)) 
+            {
+                safeSeas[nSafeSeas++] = v;
             }
         }
      
-        free(connSeas); 
+        free(connLoc); 
         
+
+        printf("Sea Travel again ......\n\n");
+        for(i = 0; i < nSafeSeas; i++) {
+            LocationID v = safeSeas[i];
+
+            printf("%s\n", idToName(v));
+        }
+        printf("\n");
+
 
         if(nSafeSeas > 0) {
             srand(time(NULL));
-            int index = rand() % nSafeSeas;
+            int index = rand() % nSafeSeas; 
+
             move = safeSeas[index];
+            printf("%s\n", idToName(move));
+            assert(isLegalMove(gameState, move));
         } else if(!hasDBInTrail(gameState)) {
             move = doubleBackToSafeLoc(gameState);
         }
