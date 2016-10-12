@@ -539,7 +539,6 @@ static LocationID goToLandOrSea(DracView gameState) {
             int index = rand() % nSafeSeas; 
 
             move = safeSeas[index];
-            printf("%s\n", idToName(move));
             assert(isLegalMove(gameState, move));
         } else if(!hasDBInTrail(gameState)) {
             move = doubleBackToSafeLoc(gameState);
