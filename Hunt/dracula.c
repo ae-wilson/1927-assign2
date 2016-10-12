@@ -132,8 +132,9 @@ static int isLegalMove(DracView gameState, LocationID move) {
         if(dracMoves[pos] == HIDE) {
             pos++;
             if(pos > 4) return FALSE;
-            move = dracMoves[pos]; 
-        } else if(dracMoves[pos] == TELEPORT) {
+        } 
+
+        if(dracMoves[pos] == TELEPORT) {
             move = CASTLE_DRACULA;
         } else {
             move = dracMoves[pos];
@@ -356,6 +357,9 @@ static LocationID goToLandOrSea(DracView gameState) {
 
     LocationID move = UNKNOWN_LOCATION;
     
+    if(numHuntersThere(gameState, whereIs(gameState, PLAYER_DRACULA)) > 0) {
+        return awayFromHunters(gameState);
+    } 
         
     // Find out all the connected port cities     
     int numPorts = 0;
@@ -369,8 +373,6 @@ static LocationID goToLandOrSea(DracView gameState) {
 
     int hunter = 0;
     for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
-        if(idToType(whereIs(gameState, hunter)) == SEA) continue;
-
         int numLocations = 0;
         LocationID *connLoc = whereHuntersCanGoNext(gameState, &numLocations, hunter,
                                                  1, 1, 1);
@@ -392,12 +394,15 @@ static LocationID goToLandOrSea(DracView gameState) {
         LocationID p = ports[i];
 
         // Ports which are not 'safe'
-        if(p == ATHENS) {
-            if(numHuntersThere(gameState, IONIAN_SEA) > 0) continue;
-        }
-
-        if(p == BARI) {
-            if(numHuntersThere(gameState, ADRIATIC_SEA) > 0) continue;
+        if(p == ATHENS)    continue;
+        if(p == PLYMOUTH)  continue;
+        if(p == BARI)      continue;
+        if(p == SALONICA || p == VALONA) {
+            if(occupied[SOFIA])      continue;
+            if(occupied[BELGRADE])   continue;
+            if(occupied[SARAJEVO])   continue;
+            if(occupied[BUCHAREST])  continue;
+            if(occupied[SZEGED])     continue;
         }
 
         if(p == CAGLIARI) {
@@ -408,14 +413,17 @@ static LocationID goToLandOrSea(DracView gameState) {
             }
         }   
 
-        if(p == GALWAY || p == DUBLIN) {
-            if(numHuntersThere(gameState, IRISH_SEA) > 0) continue;
+        if(p == GALWAY || p == DUBLIN) { 
+            if(numHuntersThere(gameState, IRISH_SEA) > 0)       continue;
+            if(numHuntersThere(gameState, ATLANTIC_OCEAN) > 0)  continue;
+
             if(occupied[GALWAY] || occupied[DUBLIN]) continue;
         }
 
         if(p == EDINBURGH || p == LIVERPOOL || p == LONDON ||  
-           p == PLYMOUTH || p == SWANSEA) 
+           p == SWANSEA) 
         {
+            if(occupied[ENGLISH_CHANNEL])  continue;
             if(occupied[EDINBURGH])  continue;
             if(occupied[LIVERPOOL])  continue;
             if(occupied[LONDON])     continue;
@@ -541,22 +549,12 @@ static LocationID awayFromHunters(DracView gameState) {
     assert(safeLoc != NULL);  
  
      
-    if(numSL == 0) {
+    if(numSL <= 1) {
         free(safeLoc);
 
         safeLoc = safeConnectedLocations(gameState, &numSL, 1, 1);
         assert(safeLoc != NULL);  
-    } else if(numSL == 1) {
-        LocationID v = safeLoc[0];
-
-        if(v == whereIs(gameState, PLAYER_DRACULA) && !isLegalMove(gameState, HIDE)) {
-            free(safeLoc);
-
-            safeLoc = safeConnectedLocations(gameState, &numSL, 1, 1);
-            assert(safeLoc != NULL);  
-        }
     } 
-
 
     // For the game Log
     printf("\nS Moves:\n");
@@ -576,7 +574,9 @@ static LocationID awayFromHunters(DracView gameState) {
  
         // Try not stay at the same place
         if(safeLoc[loc] == whereIs(gameState, PLAYER_DRACULA)) {
-            if(isLegalMove(gameState, HIDE)) {
+            if(!isLegalMove(gameState, whereIs(gameState, PLAYER_DRACULA)) && 
+               isLegalMove(gameState, HIDE)) 
+            {
                 move = HIDE;
             } else { 
                 int i = 0;
@@ -762,27 +762,11 @@ static LocationID *safeConnectedLocations(DracView gameState, int *numLocations,
                     }
                 }
 
-            } else if(idToType(dracLoc) == SEA) {
-               if(loc == MEDITERRANEAN_SEA) {
-                   safePlaces[count++] = loc;
-               } else if(loc == ATLANTIC_OCEAN) {
-                   safePlaces[count++] = loc;
-               } else if(loc == TYRRHENIAN_SEA) {
-                   safePlaces[count++] = loc;
-               } else if(loc == IONIAN_SEA) {
-                   safePlaces[count++] = loc;
-               } else if(loc == IRISH_SEA) {
-                   safePlaces[count++] = loc;
-               } else if(loc == ENGLISH_CHANNEL) {
-                   safePlaces[count++] = loc;
-               } else if(loc == BAY_OF_BISCAY) {
-                   safePlaces[count++] = loc;
-               } else {
-                   if(!occupied[loc]) {
-                       safePlaces[count++] = loc;
-                   }
-               }
-
+            } else {
+                if(!occupied[loc]) {
+                    safePlaces[count++] = loc;
+                }
+                    
             }
 
         }
@@ -894,12 +878,12 @@ static int isSafeCastle(DracView gameState) {
 static LocationID positionInTrail(DracView gameState, LocationID location) {
     assert(gameState != NULL);
 
-    LocationID trail[TRAIL_SIZE];
-    giveMeTheTrail(gameState, PLAYER_DRACULA, trail);
+    LocationID dracMoves[TRAIL_SIZE];
+    giveMeTheMoves(gameState, PLAYER_DRACULA, dracMoves);
 
     int i = 0;
     for(i = 0; i < TRAIL_SIZE - 1; i++) {
-        LocationID v = trail[i];
+        LocationID v = dracMoves[i];
 
         if(v != UNKNOWN_LOCATION) {
             if(v == location) return i;
