@@ -293,6 +293,8 @@ static LocationID legalMove(DracView gameState) {
         printf("Try to escape from hunters' tracking ......\n\n");
 
         for(risk = 0; risk < NUM_PLAYERS; risk++) {
+            if(move != UNKNOWN_LOCATION) break;
+
             for(i = 0; i < numLM; i++) {
                 LocationID v = legalMoves[i];
  
