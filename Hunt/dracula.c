@@ -640,13 +640,6 @@ static LocationID awayFromHunters(DracView gameState) {
     LocationID *safeLoc = safeConnectedLocations(gameState, &numSL, 1, 0);
     assert(safeLoc != NULL);  
  
-     
-    if(numSL == 0) {
-        free(safeLoc);
-
-        safeLoc = safeConnectedLocations(gameState, &numSL, 1, 1);
-        assert(safeLoc != NULL);  
-    } 
 
     // For the game Log
     printf("Getting away from Hunters ......\n");
@@ -684,7 +677,25 @@ static LocationID awayFromHunters(DracView gameState) {
 
             LocationID currLoc = whereIs(gameState, PLAYER_DRACULA);
             if(!occupied[currLoc]) move = HIDE;
+        } 
+
+        if(move == UNKNOWN_LOCATION) {
+            free(safeLoc);
+    
+            safeLoc = safeConnectedLocations(gameState, &numSL, 1, 1);
+            assert(safeLoc != NULL);
+
+            if(numSL > 0) {
+                printf("Try to escape by sea travel ......\n");
+
+                srand(time(NULL));
+                int index = rand() % numSL;
+                move = safeLoc[index];                 
+
+                assert(isLegalMove(gameState, move));
+            }
         }
+
     } 
 
     free(safeLoc);
