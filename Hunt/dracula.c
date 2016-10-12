@@ -463,6 +463,14 @@ static LocationID goToLandOrSea(DracView gameState) {
         int index = rand() % numSP;
 
         printf("Landing ......\n\n");
+        printf("Number of Safe ports: %d\n", numSP);
+        for(i = 0; i < numSP; i++) {
+            LocationID v = safePorts[i];
+
+            printf("%s\n", idToName(v));
+        }
+        printf("\n");
+
         move = safePorts[index];
         assert(isLegalMove(gameState, move)); 
     } else {
@@ -517,6 +525,7 @@ static LocationID goToLandOrSea(DracView gameState) {
         
 
         printf("Sea Travel again ......\n\n");
+        printf("Number of Safe Seas: %d\n", nSafeSeas);
         for(i = 0; i < nSafeSeas; i++) {
             LocationID v = safeSeas[i];
 
@@ -646,7 +655,7 @@ static LocationID awayFromHunters(DracView gameState) {
     } 
 
     // For the game Log
-    printf("Safe Locations:\n");
+    printf("Getting away from Hunters ......\n");
     printf("Number of Safe Locations = %d\n\n", numSL);
     
     int n = 0;
