@@ -647,7 +647,7 @@ static LocationID awayFromHunters(DracView gameState) {
 
     // Discover where hunters can't reach while Dracula can reach
     int numSL = 0;
-    LocationID *safeLoc = safeConnectedLocations(gameState, &numSL, 1, 1);
+    LocationID *safeLoc = safeConnectedLocations(gameState, &numSL, 1, 0);
     assert(safeLoc != NULL);  
     int *distFromH = distanceFromHunters(gameState, safeLoc, numSL);
     assert(distFromH != NULL);
@@ -663,7 +663,8 @@ static LocationID awayFromHunters(DracView gameState) {
     }
     printf("\n");
 
- 
+
+
     LocationID move = UNKNOWN_LOCATION;         
 
     if(numSL > 0) {
@@ -696,6 +697,20 @@ static LocationID awayFromHunters(DracView gameState) {
             if(!occupied[currLoc]) move = HIDE;
             free(occupied);
         } 
+
+        if(move == UNKNOWN_LOCATION) {
+            free(safeLoc);
+
+            safeLoc = safeConnectedLocations(gameState, &numSL, 1, 1);
+            assert(safeLoc != NULL);
+     
+            if(numSL > 0) {
+                printf("Try to escape by sea travel ......\n\n");
+
+                srand(time(NULL));
+                move = safeLoc[rand() % numSL];
+            }
+        }
 
     } 
 

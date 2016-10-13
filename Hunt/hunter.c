@@ -79,10 +79,10 @@ static LocationID firstMove(HunterView gameState) {
     LocationID move = GENEVA;    
 
     switch(player) {
-    case PLAYER_LORD_GODALMING:  move = GENEVA;             break;
-    case PLAYER_DR_SEWARD:       move = PARIS;              break;
-    case PLAYER_VAN_HELSING:     move = MILAN;              break;
-    case PLAYER_MINA_HARKER:     move = CLERMONT_FERRAND;   break; 
+    case PLAYER_LORD_GODALMING:  move = SZEGED;             break;
+    case PLAYER_DR_SEWARD:       move = FRANKFURT;          break;
+    case PLAYER_VAN_HELSING:     move = VENICE;             break;
+    case PLAYER_MINA_HARKER:     move = MADRID;             break; 
     }
 
     return move;
@@ -92,7 +92,7 @@ static LocationID randomMove(HunterView gameState) {
     assert(gameState != NULL);
 
     int numLocations = 0;
-    LocationID *adLoc = whereCanIgo(gameState, &numLocations, 1, 1, 1);
+    LocationID *adLoc = whereCanIgo(gameState, &numLocations, 1, 1, 0);
     assert(adLoc != NULL);   
     assert(numLocations > 0);
 
