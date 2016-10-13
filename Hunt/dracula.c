@@ -510,7 +510,7 @@ static LocationID goToLandOrSea(DracView gameState) {
             assert(connLoc != NULL);
 
             for(i = 0; i < numLocations; i++) {
-                LocationID v = connLoc[i];
+                LocationID v = adLoc[i];
                 if(idToType(v) == SEA) {
                     occupiedSeas[v] = 1;
                 }
