@@ -17,7 +17,7 @@
 #define FALSE 0
 
 #define NOT_IN_TRAIL -1
-#define SAFE_DISTANCE 5
+#define SAFE_DISTANCE 4
 
 // ***  Private Functions   ***
 static int isLegalMove(DracView gameState, LocationID move);
@@ -27,6 +27,7 @@ static int isSafeCastle(DracView gameState);
 static int hasDBInTrail(DracView gameState);
 static int numHuntersThere(DracView gameState, LocationID loc);
 static int *occupiedPlaces(DracView gameState);
+static int *distanceFromHunters(DracView gameState, LocationID *array, int n);
 
 static LocationID firstMove(DracView gameState);
 static LocationID BestMove(DracView gameState);
@@ -297,7 +298,11 @@ static LocationID legalMove(DracView gameState) {
 
             for(i = 0; i < numLM; i++) {
                 LocationID v = legalMoves[i];
- 
+
+                if(v == CASTLE_DRACULA) {
+                    if(!isSafeCastle(gameState)) continue;
+                }
+
                 if(occupied[v] == risk) {
                     move = v;
                     break;
@@ -318,20 +323,6 @@ static LocationID legalMove(DracView gameState) {
                 LocationID v = trail[i];
                 LocationID double_back = DOUBLE_BACK_1 + i;
                         
-                if(v == GALWAY || v == DUBLIN) { 
-                    if(numHuntersThere(gameState, ATLANTIC_OCEAN) > 0) continue;
-                    if(numHuntersThere(gameState, IRISH_SEA) > 0)      continue;
-                }
-
-                if(v == EDINBURGH || v == PLYMOUTH || v == LONDON || v == MANCHESTER ||
-                   v == SWANSEA || v == LIVERPOOL) 
-                {
-                    if(numHuntersThere(gameState, IRISH_SEA) > 0)       continue;
-                    if(numHuntersThere(gameState, NORTH_SEA) > 0)       continue;
-                    if(numHuntersThere(gameState, ENGLISH_CHANNEL) > 0) continue;
-                }
-                                  
-
                 if(isLegalMove(gameState, double_back) && v != UNKNOWN_LOCATION) {
                     if(occupied[v] < risk) {
                         move = double_back;
@@ -356,9 +347,6 @@ static LocationID legalMove(DracView gameState) {
                 } else if(isLegalMove(gameState, HIDE)) {
                     printf("Place more millions / Stay at the same sea ......\n\n");
                     move = HIDE;
-                } else if(isLegalMove(gameState, DOUBLE_BACK_1)) {
-                    printf("Place more millions / Stay at the same sea ......\n\n");               
-                    move = DOUBLE_BACK_1;
                 }  
             }
         }
@@ -441,7 +429,7 @@ static LocationID goToLandOrSea(DracView gameState) {
 
         if(p == SALONICA || p == VALONA) {
             if(occupied[SOFIA])      continue;
-            if(occupied[BUCHAREST])  continue;
+            if(occupied[SARAJEVO])  continue;
         }
 
         if(p == CAGLIARI) {
@@ -457,12 +445,8 @@ static LocationID goToLandOrSea(DracView gameState) {
         if(p == EDINBURGH || p == LIVERPOOL || p == LONDON ||  
            p == SWANSEA) 
         {
-            if(occupied[EDINBURGH])  continue;
-            if(occupied[LIVERPOOL])  continue;
-            if(occupied[LONDON])     continue;
+            if(occupied[LONDON])  continue;
             if(occupied[MANCHESTER]) continue;
-            if(occupied[PLYMOUTH])   continue;
-            if(occupied[SWANSEA])    continue;
             if(numHuntersThere(gameState, ENGLISH_CHANNEL) > 0) continue;
         }
 
@@ -530,6 +514,14 @@ static LocationID goToLandOrSea(DracView gameState) {
             LocationID v = connLoc[i];
 
             if(idToType(v) != SEA) continue;
+            
+            if(v == ADRIATIC_SEA) {
+                if(numHuntersThere(gameState, IONIAN_SEA) > 0) continue;
+            }
+
+            if(v == IRISH_SEA) {
+                if(numHuntersThere(gameState, ATLANTIC_OCEAN) > 0) continue;
+            }
 
             if(numHuntersThere(gameState, v) == 0 && !occupiedSeas[v] && 
                isLegalMove(gameState, v)) 
@@ -624,7 +616,7 @@ static LocationID backToCastle(DracView gameState) {
         assert(sPath != NULL);
         LocationID next = sPath[1];
       
-        if(isLegalMove(gameState, next) && numHuntersThere(gameState, next) == 0) {
+        if(isLegalMove(gameState, next)) {
             printf("(`vv`) --> Castle Dracula\n\n");
 
             move = next;
@@ -655,8 +647,10 @@ static LocationID awayFromHunters(DracView gameState) {
 
     // Discover where hunters can't reach while Dracula can reach
     int numSL = 0;
-    LocationID *safeLoc = safeConnectedLocations(gameState, &numSL, 1, 0);
+    LocationID *safeLoc = safeConnectedLocations(gameState, &numSL, 1, 1);
     assert(safeLoc != NULL);  
+    int *distFromH = distanceFromHunters(gameState, safeLoc, numSL);
+    assert(distFromH != NULL);
  
 
     // For the game Log
@@ -665,7 +659,7 @@ static LocationID awayFromHunters(DracView gameState) {
     
     int n = 0;
     for(n = 0; n < numSL; n++) {
-        printf("%s\n", idToName(safeLoc[n]));
+        printf("%s -- R%d\n", idToName(safeLoc[n]), distFromH[n]);
     }
     printf("\n");
 
@@ -673,26 +667,20 @@ static LocationID awayFromHunters(DracView gameState) {
     LocationID move = UNKNOWN_LOCATION;         
 
     if(numSL > 0) {
-        printf("Go to random safe spot ......\n");
-
-        srand(time(NULL));
-        int index = rand() % numSL;
-        move = safeLoc[index];                 
-
-        assert(isLegalMove(gameState, move));
-    } else {
-
-        if(isLegalMove(gameState, HIDE)) {
-            int *occupied = occupiedPlaces(gameState);
-            assert(occupied != NULL);
-
-            LocationID currLoc = whereIs(gameState, PLAYER_DRACULA);
-            if(!occupied[currLoc]) move = HIDE;
-            free(occupied);
+        printf("Going to safe spot ......\n");
+                
+        int index = 0; // make sure Dracula will make a move;
+        for(n = 1; n < numSL; n++) {
+            if(distFromH[n] > distFromH[index]) {
+                index = n;
+            }
         }
 
-
-        if(move == UNKNOWN_LOCATION && !hasDBInTrail(gameState)) {
+        move = safeLoc[index];
+        assert(isLegalMove(gameState, move));
+    } else {
+ 
+        if(!hasDBInTrail(gameState)) {
             move = doubleBackToSafeLoc(gameState);
 
             if(move == DOUBLE_BACK_1) {
@@ -700,29 +688,19 @@ static LocationID awayFromHunters(DracView gameState) {
                     move = HIDE;
                 }
             }
+        } else if(isLegalMove(gameState, HIDE)) {
+            int *occupied = occupiedPlaces(gameState);
+            assert(occupied != NULL);
+
+            LocationID currLoc = whereIs(gameState, PLAYER_DRACULA);
+            if(!occupied[currLoc]) move = HIDE;
+            free(occupied);
         } 
-
-
-        if(move == UNKNOWN_LOCATION) {
-            free(safeLoc);
-    
-            safeLoc = safeConnectedLocations(gameState, &numSL, 1, 1);
-            assert(safeLoc != NULL);
-
-            if(numSL > 0) {
-                printf("Try to escape by sea travel ......\n");
-
-                srand(time(NULL));
-                int index = rand() % numSL;
-                move = safeLoc[index];                 
-
-                assert(isLegalMove(gameState, move));
-            }
-        }
 
     } 
 
     free(safeLoc);
+    free(distFromH);
 
     // Make sure Dracula will make a random and legal move
     if(move == UNKNOWN_LOCATION) move = legalMove(gameState);    
@@ -744,22 +722,8 @@ static LocationID doubleBackToSafeLoc(DracView gameState) {
     int *occupied = occupiedPlaces(gameState);
     assert(occupied != NULL);
           
-    for(i = TRAIL_SIZE - 2; i >= 0; i--) {
+    for(i = 0; i < TRAIL_SIZE - 1; i++) {
         LocationID loc = trail[i];
-
-        if(loc == GALWAY || loc == DUBLIN) { 
-            if(numHuntersThere(gameState, ATLANTIC_OCEAN) > 0) continue;
-            if(numHuntersThere(gameState, IRISH_SEA) > 0)      continue;
-        }
-
-        if(loc == EDINBURGH || loc == PLYMOUTH || loc == LONDON || loc == MANCHESTER ||
-           loc == SWANSEA || loc == LIVERPOOL) 
-        {
-            if(numHuntersThere(gameState, IRISH_SEA) > 0)       continue;
-            if(numHuntersThere(gameState, NORTH_SEA) > 0)       continue;
-            if(numHuntersThere(gameState, ENGLISH_CHANNEL) > 0) continue;
-        }
-
 
         if(loc != UNKNOWN_LOCATION) {
             if(!occupied[loc] && isLegalMove(gameState, DOUBLE_BACK_1 + i)) {
@@ -822,6 +786,38 @@ static LocationID *safeConnectedLocations(DracView gameState, int *numLocations,
     *numLocations = count;
     return safePlaces;
 } 
+
+static int *distanceFromHunters(DracView gameState, LocationID *array, int n) {
+    assert(gameState != NULL);
+    assert(array != NULL);
+    assert(n <= NUM_MAP_LOCATIONS);
+
+    int *result = malloc(n * sizeof(int));
+    assert(result != NULL);
+
+   
+    int i, hunter = 0; 
+    int totalDist = 0;
+
+    for(i = 0; i < n; i++) {
+        totalDist = 0;
+
+        for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
+            int length = 0;
+            LocationID *sPath = sPathForHunters(gameState, &length, hunter, whereIs(gameState, hunter), 
+                                                array[i], 1, 0, 1);
+
+            assert(sPath != NULL);   // there must be a shortest path
+            totalDist += length;
+            free(sPath);
+        }
+
+        result[i] = totalDist;
+    }
+
+    return result;
+}
+
 
 
 // Check if the given location is adjacent to Dracula's current location
@@ -921,7 +917,6 @@ static int isSafeCastle(DracView gameState) {
 
     int hunter = 0;
     int greaterThanSD = 0;
-    int lessThanSD = 0;
  
     for(hunter = 0; hunter < PLAYER_DRACULA; hunter++) {
         int length = 0;
@@ -930,9 +925,7 @@ static int isSafeCastle(DracView gameState) {
             
         assert(sPath != NULL);
 
-        if(length < SAFE_DISTANCE) {
-            lessThanSD++;
-        } else {
+        if(length > SAFE_DISTANCE) {
             greaterThanSD++;
         }
 
@@ -945,10 +938,10 @@ static int isSafeCastle(DracView gameState) {
    
     int isSafe = FALSE;
     if(distFromD == 0) return FALSE;
+    if(greaterThanSD == 4 && distFromD < SAFE_DISTANCE) {
+        isSafe = TRUE;    
+    }
 
-    if(distFromD < SAFE_DISTANCE - 1 && lessThanSD <= 1) {
-        isSafe = TRUE;
-    } 
     free(sPath);
 
     return isSafe;
