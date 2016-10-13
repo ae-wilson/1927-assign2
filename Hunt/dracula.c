@@ -278,7 +278,7 @@ static LocationID legalMove(DracView gameState) {
     printf("Number Of Legal Moves = %d\n", numLM);
     for(i = 0; i < numLM; i++) {
         LocationID v = legalMoves[i];
-        printf("%s\n", idToName(v));
+        printf("%s -- R%d\n", idToName(v), occupied[v]);
     }
     printf("\n");
 
@@ -299,11 +299,11 @@ static LocationID legalMove(DracView gameState) {
                 LocationID v = legalMoves[i];
  
                 if(occupied[v] == risk) {
-
                     move = v;
                     break;
                 }
             }
+    
         }
 
 
@@ -318,13 +318,28 @@ static LocationID legalMove(DracView gameState) {
                 LocationID v = trail[i];
                 LocationID double_back = DOUBLE_BACK_1 + i;
                         
+                if(v == GALWAY || v == DUBLIN) { 
+                    if(numHuntersThere(gameState, ATLANTIC_OCEAN) > 0) continue;
+                    if(numHuntersThere(gameState, IRISH_SEA) > 0)      continue;
+                }
+
+                if(v == EDINBURGH || v == PLYMOUTH || v == LONDON || v == MANCHESTER ||
+                   v == SWANSEA || v == LIVERPOOL) 
+                {
+                    if(numHuntersThere(gameState, IRISH_SEA) > 0)       continue;
+                    if(numHuntersThere(gameState, NORTH_SEA) > 0)       continue;
+                    if(numHuntersThere(gameState, ENGLISH_CHANNEL) > 0) continue;
+                }
+                                  
+
                 if(isLegalMove(gameState, double_back) && v != UNKNOWN_LOCATION) {
                     if(occupied[v] < risk) {
                         move = double_back;
                     }
                 }
             }
-             
+            
+ 
             // Try to use HIDE instead of DOUBLE_BACK_1
             if(move == DOUBLE_BACK_1) {
                 if(isLegalMove(gameState, HIDE)) move = HIDE;
@@ -334,7 +349,7 @@ static LocationID legalMove(DracView gameState) {
             // Try to stay at the same location and use traps 
             // to kill hunters before the encounter
             LocationID currLoc = whereIs(gameState, PLAYER_DRACULA);
-            if(occupied[currLoc] < risk) {
+            if(occupied[currLoc] <= risk) {
                 if(isLegalMove(gameState, currLoc)) {
                     printf("Place more millions / Stay at the same sea ......\n\n");
                     move = currLoc;
@@ -543,6 +558,7 @@ static LocationID goToLandOrSea(DracView gameState) {
             move = safeSeas[index];
             assert(isLegalMove(gameState, move));
         } else if(!hasDBInTrail(gameState)) {
+            printf("Try to stay at the same sea if the current sea is safe :( ......\n\n");
             move = doubleBackToSafeLoc(gameState);
         }
 
@@ -665,7 +681,18 @@ static LocationID awayFromHunters(DracView gameState) {
 
         assert(isLegalMove(gameState, move));
     } else {
-        if(!hasDBInTrail(gameState)) {
+
+        if(isLegalMove(gameState, HIDE)) {
+            int *occupied = occupiedPlaces(gameState);
+            assert(occupied != NULL);
+
+            LocationID currLoc = whereIs(gameState, PLAYER_DRACULA);
+            if(!occupied[currLoc]) move = HIDE;
+            free(occupied);
+        }
+
+
+        if(move == UNKNOWN_LOCATION && !hasDBInTrail(gameState)) {
             move = doubleBackToSafeLoc(gameState);
 
             if(move == DOUBLE_BACK_1) {
@@ -673,13 +700,8 @@ static LocationID awayFromHunters(DracView gameState) {
                     move = HIDE;
                 }
             }
-        } else if(isLegalMove(gameState, HIDE)) {
-            int *occupied = occupiedPlaces(gameState);
-            assert(occupied != NULL);
-
-            LocationID currLoc = whereIs(gameState, PLAYER_DRACULA);
-            if(!occupied[currLoc]) move = HIDE;
         } 
+
 
         if(move == UNKNOWN_LOCATION) {
             free(safeLoc);
@@ -725,6 +747,20 @@ static LocationID doubleBackToSafeLoc(DracView gameState) {
     for(i = TRAIL_SIZE - 2; i >= 0; i--) {
         LocationID loc = trail[i];
 
+        if(loc == GALWAY || loc == DUBLIN) { 
+            if(numHuntersThere(gameState, ATLANTIC_OCEAN) > 0) continue;
+            if(numHuntersThere(gameState, IRISH_SEA) > 0)      continue;
+        }
+
+        if(loc == EDINBURGH || loc == PLYMOUTH || loc == LONDON || loc == MANCHESTER ||
+           loc == SWANSEA || loc == LIVERPOOL) 
+        {
+            if(numHuntersThere(gameState, IRISH_SEA) > 0)       continue;
+            if(numHuntersThere(gameState, NORTH_SEA) > 0)       continue;
+            if(numHuntersThere(gameState, ENGLISH_CHANNEL) > 0) continue;
+        }
+
+
         if(loc != UNKNOWN_LOCATION) {
             if(!occupied[loc] && isLegalMove(gameState, DOUBLE_BACK_1 + i)) {
                 printf("Double Back to safe spot ......\n\n");
@@ -762,11 +798,16 @@ static LocationID *safeConnectedLocations(DracView gameState, int *numLocations,
     int *occupied = occupiedPlaces(gameState);
     assert(occupied != NULL);
     
-    
+ 
     // Count the length and fill in the safePlace array with reachable locations
     int count = 0;
     for(i = 0; i < length; i++) {
         LocationID v = connLoc[i];
+ 
+        if(v == CASTLE_DRACULA) {
+            if(!isSafeCastle(gameState)) continue;
+        }
+
 
         if(isLegalMove(gameState, v)) {
             if(!occupied[v]) {
