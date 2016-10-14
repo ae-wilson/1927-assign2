@@ -27,17 +27,16 @@ static int isSafeCastle(DracView gameState);
 static int hasDBInTrail(DracView gameState);
 static int numHuntersThere(DracView gameState, LocationID loc);
 static int *occupiedPlaces(DracView gameState);
-static int *distanceFromHunters(DracView gameState, LocationID *array, int n);
+//static int *distanceFromHunters(DracView gameState, LocationID *array, int n);
 
 static LocationID firstMove(DracView gameState);
 static LocationID BestMove(DracView gameState);
 static LocationID legalMove(DracView gameState);
-static LocationID positionInTrail(DracView gameState, LocationID location);
 static LocationID goToLandOrSea(DracView gameState);
 static LocationID backToCastle(DracView gameState);
 static LocationID awayFromHunters(DracView gameState);
 static LocationID doubleBackToSafeLoc(DracView gameState);
-
+//static LocationID positionInTrail(DracView gameState, LocationID location);
 static LocationID *connectedPorts(DracView gameState, int *numPorts);
 static LocationID *safeConnectedLocations(DracView gameState, int *numLocations, int road, int sea);
 
@@ -170,32 +169,25 @@ static int isLegalMove(DracView gameState, LocationID move) {
 static LocationID firstMove(DracView gameState) {
     assert(gameState != NULL);
     
-    int i = 0;
     int *occupied = occupiedPlaces(gameState);
     assert(occupied != NULL); 
   
+    LocationID firstMove = UNKNOWN_LOCATION;
 
-    // Count the number of safe starting point 
-    int count = 0;
-    LocationID safeFirstMove[NUM_MAP_LOCATIONS];
-    for(i = 0; i < NUM_MAP_LOCATIONS; i++) safeFirstMove[i] = 0; 
-
-    for(i = 0; i < NUM_MAP_LOCATIONS; i++) {
-        LocationID location = (LocationID) i;
-        if(idToType(location) == SEA) continue;
-        if(location == ST_JOSEPH_AND_ST_MARYS) continue;
-
-        if(!occupied[location]) safeFirstMove[count++] = location;
+    if(!occupied[KLAUSENBURG] && !occupied[GALATZ] && !occupied[BUCHAREST]) {
+        firstMove = CASTLE_DRACULA;
+    } else if(!occupied[MADRID]) {
+        firstMove = MADRID;
+    } else if(!occupied[NAPLES] && !occupied[BARI]) {
+        firstMove = BARI;
+    } else if(!occupied[MANCHESTER]) {
+        firstMove = MANCHESTER;
+    } else {
+        firstMove = CASTLE_DRACULA;
     }
 
     free(occupied);
      
-
-    // Randomly choose safe starting point
-    srand(time(NULL));
-    int index = rand() % count;
-    LocationID firstMove = safeFirstMove[index];
-
     return firstMove;
 } 
 
@@ -649,17 +641,14 @@ static LocationID awayFromHunters(DracView gameState) {
     int numSL = 0;
     LocationID *safeLoc = safeConnectedLocations(gameState, &numSL, 1, 0);
     assert(safeLoc != NULL);  
-    int *distFromH = distanceFromHunters(gameState, safeLoc, numSL);
-    assert(distFromH != NULL);
- 
-
+    
     // For the game Log
     printf("Getting away from Hunters ......\n");
     printf("Number of Safe Locations = %d\n\n", numSL);
     
     int n = 0;
     for(n = 0; n < numSL; n++) {
-        printf("%s -- R%d\n", idToName(safeLoc[n]), distFromH[n]);
+        printf("%s\n", idToName(safeLoc[n]));
     }
     printf("\n");
 
@@ -669,13 +658,9 @@ static LocationID awayFromHunters(DracView gameState) {
 
     if(numSL > 0) {
         printf("Going to safe spot ......\n");
-                
-        int index = 0; // make sure Dracula will make a move;
-        for(n = 1; n < numSL; n++) {
-            if(distFromH[n] > distFromH[index]) {
-                index = n;
-            }
-        }
+       
+        srand(time(NULL));         
+        int index = rand() % numSL;
 
         move = safeLoc[index];
         assert(isLegalMove(gameState, move));
@@ -699,7 +684,7 @@ static LocationID awayFromHunters(DracView gameState) {
         } 
 
         if(move == UNKNOWN_LOCATION) {
-            free(safeLoc);
+            free(safeLoc);         
 
             safeLoc = safeConnectedLocations(gameState, &numSL, 1, 1);
             assert(safeLoc != NULL);
@@ -712,10 +697,10 @@ static LocationID awayFromHunters(DracView gameState) {
             }
         }
 
+
     } 
 
     free(safeLoc);
-    free(distFromH);
 
     // Make sure Dracula will make a random and legal move
     if(move == UNKNOWN_LOCATION) move = legalMove(gameState);    
@@ -737,8 +722,12 @@ static LocationID doubleBackToSafeLoc(DracView gameState) {
     int *occupied = occupiedPlaces(gameState);
     assert(occupied != NULL);
           
-    for(i = 0; i < TRAIL_SIZE - 1; i++) {
+    for(i = TRAIL_SIZE - 2; i >= 0; i--) {
         LocationID loc = trail[i];
+
+        if(loc == CASTLE_DRACULA) {
+            if(!isSafeCastle(gameState)) continue;
+        }
 
         if(loc != UNKNOWN_LOCATION) {
             if(!occupied[loc] && isLegalMove(gameState, DOUBLE_BACK_1 + i)) {
@@ -802,6 +791,7 @@ static LocationID *safeConnectedLocations(DracView gameState, int *numLocations,
     return safePlaces;
 } 
 
+/*
 static int *distanceFromHunters(DracView gameState, LocationID *array, int n) {
     assert(gameState != NULL);
     assert(array != NULL);
@@ -832,7 +822,7 @@ static int *distanceFromHunters(DracView gameState, LocationID *array, int n) {
 
     return result;
 }
-
+*/
 
 
 // Check if the given location is adjacent to Dracula's current location
@@ -926,10 +916,6 @@ static int *occupiedPlaces(DracView gameState) {
 static int isSafeCastle(DracView gameState) {
     assert(gameState != NULL);
 
-    if(positionInTrail(gameState, CASTLE_DRACULA) != NOT_IN_TRAIL) {
-        return FALSE;
-    }
-
     int hunter = 0;
     int greaterThanSD = 0;
  
@@ -962,6 +948,7 @@ static int isSafeCastle(DracView gameState) {
     return isSafe;
 }
 
+/*
 static LocationID positionInTrail(DracView gameState, LocationID location) {
     assert(gameState != NULL);
 
@@ -979,7 +966,7 @@ static LocationID positionInTrail(DracView gameState, LocationID location) {
 
     return NOT_IN_TRAIL;
 }
-
+*/
 
 // Selection Sort
 static void sortLocIDArray(LocationID *array, int low, int high) {
