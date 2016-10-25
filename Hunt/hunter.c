@@ -313,10 +313,13 @@ static void moveToAbbreviation(LocationID move, char *abbrev) {
 }
 
 static LocationID BestMove(HunterView gameState){
-// essentially this tactic aims to check if any of the possible locations which the hunter can enter in is in draculas trail. If the hunter has the option to move to a locaiton which is in draculas trail then they do as they are then closer to dracula. 
+// essentially this tactic aims to check if any of the possible locations which the hunter can enter in is in draculas trail. 
+//If the hunter has the option to move to a locaiton which is in draculas trail then they do as they are then closer to dracula. 
+
 	assert(gameState != NULL);		// assert game is valid
 	PlayerID player = WhoAmI(gameState);		// find out who the player is
 	assert(player >= PLAYER_LORD_GODALMING && player <= PLAYER_MINA_HARKER);
+	
 	LocationID bestMove = UNKNOWN_LOCATION;	// move will be the best possible move
 	LocationID *adLoc = whereCanIgo(gameState, &numLocations,1,1,0);		//find all possible locations
 	assert(adLoc != NULL);
