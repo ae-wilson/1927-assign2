@@ -30,6 +30,7 @@ static LocationID Rest(HunterView gameState);
 static void sortLocIDArray(LocationID *array, int low, int high);
 static void moveToAbbreviation(LocationID move, char *abbrev);
 
+static LocationID BestMove(HunterView gameState);
 
 void decideHunterMove(HunterView gameState)
 {
@@ -309,4 +310,32 @@ static void moveToAbbreviation(LocationID move, char *abbrev) {
         exit(EXIT_FAILURE);
     }
 
+}
+
+static LocationID BestMove(HunterView gameState){
+// essentially this tactic aims to check if any of the possible locations which the hunter can enter in is in draculas trail. If the hunter has the option to move to a locaiton which is in draculas trail then they do as they are then closer to dracula. 
+	assert(gameState != NULL);		// assert game is valid
+	PlayerID player = WhoAmI(gameState);		// find out who the player is
+	assert(player >= PLAYER_LORD_GODALMING && player <= PLAYER_MINA_HARKER);
+	LocationID bestMove = UNKNOWN_LOCATION;	// move will be the best possible move
+	LocationID *adLoc = whereCanIgo(gameState, &numLocations,1,1,0);		//find all possible locations
+	assert(adLoc != NULL);
+	assert(numLocations > 0);
+
+	LocationID *trail = giveMeTheTrail(gameState,PLAYER_DRACULA,trail]);		// return an array of draculas trail
+
+	int i,j;
+	// check if any of the possible moves are in draculas trail
+	// if the location is in dracs trail then move to this location as hunter is then closer to dracula
+	for(i = 0; i < numLocations; i++){
+		for(j = 0; j < TRAIL_SIZE; j++){
+			if(adLoc[i] == trail[j]) {
+				bestMove = adLoc[i];
+				assert(isLegalMove(gameState, move) == TRUE); 
+				return bestMove;
+			}
+		}
+	}
+	// if none of the possible moves are in dracs trail then just make a random move
+	return bestMove = randomMove(gameState);	
 }
