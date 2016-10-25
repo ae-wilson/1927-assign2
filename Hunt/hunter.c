@@ -327,8 +327,10 @@ static LocationID BestMove(HunterView gameState){
 	LocationID *adLoc = whereCanIgo(gameState, &numLocations,1,1,0);		//find all possible locations
 	assert(adLoc != NULL);
 	assert(numLocations > 0);
-
-	LocationID *trail = giveMeTheTrail(gameState,PLAYER_DRACULA,trail);		// return an array of draculas trail
+	
+	LocationID trail[TRAIL_SIZE];
+        for(i = 0; i < TRAIL_SIZE; i++) trail[i] = UNKNOWN_LOCATION;
+        giveMeTheTrail(gameState, PLAYER_DRACULA, trail);		// return an array of draculas trail
 
 	int i,j;
 	// check if any of the possible moves are in draculas trail
