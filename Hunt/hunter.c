@@ -319,7 +319,7 @@ static LocationID BestMove(HunterView gameState){
 //If the hunter has the option to move to a locaiton which is in draculas trail then they do as they are then closer to dracula. 
 
 	assert(gameState != NULL);		// assert game is valid
-	PlayerID player = WhoAmI(gameState);		// find out who the player is
+	PlayerID player = whoAmI(gameState);		// find out who the player is
 	assert(player >= PLAYER_LORD_GODALMING && player <= PLAYER_MINA_HARKER);
 	
 	LocationID bestMove = UNKNOWN_LOCATION;	// move will be the best possible move
