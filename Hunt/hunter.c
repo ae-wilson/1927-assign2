@@ -12,6 +12,7 @@
 #include "Places.h"
 #include "Queue.h"
 #include "HunterView.h"
+#include "GameView.h"
 
 #define TRUE 1
 #define FALSE 0
@@ -43,7 +44,8 @@ void decideHunterMove(HunterView gameState)
         int health = howHealthyIs(gameState, whoAmI(gameState));
 
         if(health >= MIN_HEALTH) {
-            move = randomMove(gameState);
+            //move = randomMove(gameState);
+	    move = BestMove(gameState);
         } else {
             move = Rest(gameState);
         }
@@ -321,11 +323,12 @@ static LocationID BestMove(HunterView gameState){
 	assert(player >= PLAYER_LORD_GODALMING && player <= PLAYER_MINA_HARKER);
 	
 	LocationID bestMove = UNKNOWN_LOCATION;	// move will be the best possible move
+	int numLocations = 0;
 	LocationID *adLoc = whereCanIgo(gameState, &numLocations,1,1,0);		//find all possible locations
 	assert(adLoc != NULL);
 	assert(numLocations > 0);
 
-	LocationID *trail = giveMeTheTrail(gameState,PLAYER_DRACULA,trail]);		// return an array of draculas trail
+	LocationID *trail = giveMeTheTrail(gameState,PLAYER_DRACULA,trail);		// return an array of draculas trail
 
 	int i,j;
 	// check if any of the possible moves are in draculas trail
@@ -334,7 +337,7 @@ static LocationID BestMove(HunterView gameState){
 		for(j = 0; j < TRAIL_SIZE; j++){
 			if(adLoc[i] == trail[j]) {
 				bestMove = adLoc[i];
-				assert(isLegalMove(gameState, move) == TRUE); 
+				assert(isLegalMove(gameState, bestMove) == TRUE); 
 				return bestMove;
 			}
 		}
